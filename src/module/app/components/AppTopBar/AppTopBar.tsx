@@ -38,7 +38,7 @@ export const AppTopBar: React.FC<AppTopBarProps> = ({ navOpened, onToggleNav }) 
 		<Group h="100%" px="sm" gap="sm" wrap="nowrap">
 			<Burger opened={navOpened} onClick={onToggleNav} hiddenFrom="sm" size="sm" />
 			<Group w={48} justify="center" visibleFrom="sm">
-				<BrandMark size={28} withName={false} />
+				<BrandMark size={28} variant="symbol" />
 			</Group>
 
 			<ScrollArea flex={1} scrollbars="x" type="never">
