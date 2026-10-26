@@ -17,8 +17,8 @@ RUN APP_VERSION="$APP_VERSION" npm run build
 
 FROM openresty/openresty:1.27.1.2-0-alpine AS runtime
 
-ENV SIMPWF_UI_NAME="Simpwf-ui" \
-	SIMPWF_UI_API="http://localhost:9999"
+ENV BEELINE_UI_NAME="Beeline" \
+	BEELINE_UI_API="http://localhost:9999"
 
 COPY <<'EOF' /etc/nginx/conf.d/default.conf
 init_by_lua_block {
@@ -30,7 +30,7 @@ init_by_lua_block {
 		local environ = fh:read("*a")
 		fh:close()
 		for entry in environ:gmatch("[^%z]+") do
-			local key, value = entry:match("^(SIMPWF_UI_[A-Za-z0-9_]*)=(.*)$")
+			local key, value = entry:match("^(BEELINE_UI_[A-Za-z0-9_]*)=(.*)$")
 			if key then
 				config[key] = value
 			end

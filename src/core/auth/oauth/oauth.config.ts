@@ -29,8 +29,8 @@ const cached = <T>(load: () => Promise<T>) => {
 // Plain fetch rather than coreApi: the token refresh inside the base query needs this, and going through coreApi
 // would make the base query depend on itself.
 export const loadAuthConfig = cached(async () => {
-	const { SIMPWF_UI_API } = await config.getValue();
-	return fetchJson<AuthConfig>(`${SIMPWF_UI_API.replace(/\/+$/, '')}/v1/auth/config`);
+	const { BEELINE_UI_API } = await config.getValue();
+	return fetchJson<AuthConfig>(`${BEELINE_UI_API.replace(/\/+$/, '')}/v1/auth/config`);
 });
 
 // /v1/auth/config has no logout endpoint, so it is read from the provider's discovery document.

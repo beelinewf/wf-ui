@@ -1,4 +1,4 @@
 {
-	"SIMPWF_UI_NAME": "Simpwf-ui",
-	"SIMPWF_UI_API": "/wf-engine"
+	"BEELINE_UI_NAME": "Beeline",
+	"BEELINE_UI_API": "/wf-engine"
 }

@@ -1,8 +1,8 @@
 export type ConfigValue = {
-	SIMPWF_UI_NAME: string;
-	SIMPWF_UI_API: string;
+	BEELINE_UI_NAME: string;
+	BEELINE_UI_API: string;
 	/** Optional link to where role assignments are managed in the identity provider. */
-	SIMPWF_UI_IDP_ADMIN_URL: string;
+	BEELINE_UI_IDP_ADMIN_URL: string;
 };
 
 export class Config {
@@ -11,9 +11,9 @@ export class Config {
 	private pending: Promise<void> | null = null;
 
 	private config: ConfigValue = {
-		SIMPWF_UI_NAME: '',
-		SIMPWF_UI_API: '',
-		SIMPWF_UI_IDP_ADMIN_URL: '',
+		BEELINE_UI_NAME: '',
+		BEELINE_UI_API: '',
+		BEELINE_UI_IDP_ADMIN_URL: '',
 	};
 
 	public async fetchConfigFile() {
@@ -39,7 +39,7 @@ export class Config {
 			const value = (await res.json()) as Partial<ConfigValue>;
 			this.config = { ...this.config, ...value };
 			// A relative API path (e.g. "/") targets the current origin, which the dev proxy forwards to the backend.
-			this.config.SIMPWF_UI_API = new URL(this.config.SIMPWF_UI_API || '/', window.location.origin).toString();
+			this.config.BEELINE_UI_API = new URL(this.config.BEELINE_UI_API || '/', window.location.origin).toString();
 			this.isReady = true;
 		} finally {
 			this.pending = null;

@@ -124,8 +124,8 @@ export const openCoreSse = (options: CoreSseOptions): CoreSse => {
 		const { signal } = controller;
 
 		try {
-			const { SIMPWF_UI_API } = await config.getValue();
-			const url = `${SIMPWF_UI_API.replace(/\/+$/, '')}/${options.path.replace(/^\/+/, '')}`;
+			const { BEELINE_UI_API } = await config.getValue();
+			const url = `${BEELINE_UI_API.replace(/\/+$/, '')}/${options.path.replace(/^\/+/, '')}`;
 
 			if (isOAuthTokenExpiring(getCoreAuth(api))) await refreshOAuthSession(api).catch(() => undefined);
 

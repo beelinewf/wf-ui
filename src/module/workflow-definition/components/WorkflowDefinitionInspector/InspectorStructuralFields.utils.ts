@@ -16,7 +16,7 @@ const DEFAULT_CONTEXT_DECLARATION = 'declare const context: Record<string, any>;
 export const branchDeclaration = (contextTypes: string | undefined, names: string[]) =>
 	[
 		contextTypes ?? DEFAULT_CONTEXT_DECLARATION,
-		'interface SimpwfParallelBranch {',
+		'interface BeelineParallelBranch {',
 		'\t/** The branch context when it finished. A frozen copy: assign to `context` to keep values. */',
 		'\treadonly context: Record<string, any>;',
 		'\treadonly status: string;',
@@ -24,7 +24,7 @@ export const branchDeclaration = (contextTypes: string | undefined, names: strin
 		'\treadonly start_node_id: string;',
 		'}',
 		'/** Every branch of the paired parallel, by name. Read-only. */',
-		`declare const branch: { readonly [name: string]: SimpwfParallelBranch } & {`,
-		...names.map((name) => `\treadonly ${JSON.stringify(name)}: SimpwfParallelBranch;`),
+		`declare const branch: { readonly [name: string]: BeelineParallelBranch } & {`,
+		...names.map((name) => `\treadonly ${JSON.stringify(name)}: BeelineParallelBranch;`),
 		'};',
 	].join('\n');
