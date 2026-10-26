@@ -8,12 +8,12 @@ import { RouterProvider } from 'react-router';
 import { routesConfig } from '@config/routes.config';
 
 import { coreStore } from '@core/store';
-import { themeOverride } from '@core/theme/theme.override';
+import { cssVariablesResolver, themeOverride } from '@core/theme/theme.override';
 
 function App() {
 	return (
 		<Provider store={coreStore}>
-			<MantineProvider theme={themeOverride}>
+			<MantineProvider theme={themeOverride} cssVariablesResolver={cssVariablesResolver}>
 				<Notifications position="top-right" />
 				<RouterProvider router={routesConfig} />
 			</MantineProvider>

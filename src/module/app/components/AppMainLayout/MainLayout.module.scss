@@ -1,12 +1,12 @@
 .root {
 	--app-shell-border-color: transparent;
 	min-height: 100dvh;
-	background-color: var(--mantine-color-white);
+	background-color: var(--app-color-shell);
 }
 
 .header,
 .navbar {
-	background-color: var(--mantine-color-white);
+	background-color: var(--app-color-shell);
 }
 
 .main {
