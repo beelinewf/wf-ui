@@ -142,7 +142,9 @@ export const LoginPage: React.FC = () => {
 	return (
 		<Flex p={{ base: 'md', md: 'lg' }} gap="lg" className={classes.root}>
 			<Stack flex={1} gap="xl" className={classes.panel}>
-				<BrandMark />
+				<Box hiddenFrom="md">
+					<BrandMark size={40} />
+				</Box>
 
 				<Container size={420} w="100%" flex={1} px={0}>
 					<Flex className={classes.formWrapper}>
@@ -161,9 +163,9 @@ export const LoginPage: React.FC = () => {
 
 				<Group justify="space-between" wrap="wrap" gap="xs">
 					<Text fz="xs" c="dimmed">
-						Copyright &copy; 2026 .
-						<Anchor fz={'xs'} target="_blank" href="https://github.com/LotusOrb/simpwf-ui">
-							SimpwfUI And Contributor
+						Copyright &copy; 2026{' '}
+						<Anchor fz={'xs'} target="_blank" href="https://github.com/beelinewf">
+							Beeline And Contributors
 						</Anchor>
 					</Text>
 				</Group>

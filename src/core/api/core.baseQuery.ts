@@ -45,7 +45,7 @@ export interface CoreQueryMeta {
 let httpPromise: Promise<Http> | null = null;
 
 const getHttp = (): Promise<Http> => {
-	httpPromise ??= config.getValue().then((value) => new Http(value.SIMPWF_UI_API));
+	httpPromise ??= config.getValue().then((value) => new Http(value.BEELINE_UI_API));
 	return httpPromise;
 };
 

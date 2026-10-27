@@ -17,7 +17,7 @@ const SKELETON_COLUMNS = 3;
 export const RoleListPage: React.FC = () => {
 	const { data: result, isFetching, isError, refetch } = useListRolesQuery();
 	const { data: appConfig } = useAsyncQuery(() => config.getValue(), null);
-	const idpAdminUrl = appConfig?.SIMPWF_UI_IDP_ADMIN_URL;
+	const idpAdminUrl = appConfig?.BEELINE_UI_IDP_ADMIN_URL;
 	const [selected, setSelected] = useState<Role | null>(null);
 
 	const renderMatrix = () => {

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="172.514" height="118.097" viewBox="0 0 172.514 118.097">
+  <title>Beeline</title>
+  <g id="Selection">
+    <g>
+      <path d="M75.258 58.663 L112.308 16.981 L166.339 16.981 L129.289 58.663 Z" fill="#f8a23b" stroke="#f8a23b" stroke-width="7.719" stroke-linejoin="round"/>
+      <path d="M81.433 78.731 L110.764 114.238 L152.445 114.238 L123.114 78.731 Z" fill="#1a1a1a" stroke="#1a1a1a" stroke-width="7.719" stroke-linejoin="round"/>
+      <path d="M62.908 52.487 L106.673 3.087 L169.427 3.087" fill="none" stroke="#1a1a1a" stroke-width="6.175" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M37.436 60.978 L24.314 47.856 L13.508 47.856" fill="none" stroke="#1a1a1a" stroke-width="4.631" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M12.736 47.856 C12.736 50.84 10.317 53.259 7.333 53.259 C4.349 53.259 1.93 50.84 1.93 47.856 C1.93 44.872 4.349 42.453 7.333 42.453 C10.317 42.453 12.736 44.872 12.736 47.856 Z" fill="#ffffff" stroke="#1a1a1a" stroke-width="3.859"/>
+      <path d="M39.906 89.306 L30.489 100.344" fill="none" stroke="#1a1a1a" stroke-width="4.631" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M32.033 105.747 C32.033 108.731 29.614 111.15 26.63 111.15 C23.646 111.15 21.227 108.731 21.227 105.747 C21.227 102.763 23.646 100.344 26.63 100.344 C29.614 100.344 32.033 102.763 32.033 105.747 Z" fill="#ffffff" stroke="#1a1a1a" stroke-width="3.859"/>
+      <path d="M60.592 74.1 C60.592 79.642 56.1 84.134 50.558 84.134 C45.016 84.134 40.523 79.642 40.523 74.1 C40.523 68.558 45.016 64.066 50.558 64.066 C56.1 64.066 60.592 68.558 60.592 74.1 Z" fill="#f8a23b" stroke="#1a1a1a" stroke-width="4.631"/>
+    </g>
+  </g>
+</svg>

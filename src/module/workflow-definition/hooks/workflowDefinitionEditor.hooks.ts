@@ -26,7 +26,7 @@ import { createEditorNode, createParallelPair, scopeKey } from '@module/workflow
 
 export type WorkflowDefinitionPaletteItem = { type: WorkflowDefinitionNodeType } | { definition: NodeDefinition };
 
-export const PALETTE_DRAG_TYPE = 'application/x-simpwf-node';
+export const PALETTE_DRAG_TYPE = 'application/x-beeline-node';
 
 const NODE_ANCHOR = { x: 110, y: 30 };
 const FREE_SPOT_GAP = { x: 240, y: 110 };

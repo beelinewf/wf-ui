@@ -34,13 +34,13 @@ monaco.typescript.javascriptDefaults.addExtraLib(
 		'/** Poller until: the normalized response. */',
 		'declare const response: { body: any; headers?: Record<string, any>; status?: number };',
 	].join('\n'),
-	'simpwf-globals.d.ts',
+	'beeline-globals.d.ts',
 );
 
 // `context` lives in a lib of its own so one editor can swap in a richer declaration. Extra libs are global to every
 // JS model, so the lib follows focus: the focused editor's declaration is active, and the generic one comes back on
 // blur or unmount. Re-adding a lib under the same path replaces it in place, so there is never a moment without one.
-const CONTEXT_LIB_PATH = 'simpwf-context.d.ts';
+const CONTEXT_LIB_PATH = 'beeline-context.d.ts';
 const DEFAULT_CONTEXT_LIB = [
 	'/** Workflow context. Mutable in script nodes, frozen in conditions, predicates and validation. */',
 	'declare const context: Record<string, any>;',
