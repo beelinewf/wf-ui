@@ -1,22 +1,31 @@
 import React from 'react';
 
-import { Box, Paper, Stack, Text, Title } from '@mantine/core';
+import { Box, Stack, Text, Title } from '@mantine/core';
+
+import { BrandMark } from '@common/component/BrandMark';
+import { WingPattern } from '@common/component/WingPattern';
 
 import classes from './LoginHero.module.scss';
 
 export const LoginHero: React.FC = () => {
 	return (
-		<Paper radius="lg" p={{ base: 'lg', lg: 48 }} className={classes.root}>
-			<Stack h="100%" justify="center" gap="xl">
+		<Box p={{ base: 'lg', lg: 48 }} className={classes.root}>
+			<WingPattern className={classes.pattern} />
+
+			<Stack h="100%" justify="space-between" gap="xl" className={classes.content}>
+				<BrandMark size={52} tone="dark" />
+
 				<Box>
-					<Title order={2} fz={{ base: 26, lg: 34 }} className={classes.title}>
-						Effortlessly manage Simpwf
+					<Title order={2} fz={{ base: 28, lg: 40 }} className={classes.title}>
+						Workflows,
+						<br />
+						in a straight line.
 					</Title>
-					<Text fz="sm" className={classes.description}>
-						Log in to access your App
+					<Text fz="md" className={classes.description}>
+						Design, run and monitor your workflows from one place.
 					</Text>
 				</Box>
 			</Stack>
-		</Paper>
+		</Box>
 	);
 };

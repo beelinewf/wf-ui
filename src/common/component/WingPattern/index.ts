@@ -1,0 +1,1 @@
+export { WingPattern } from './WingPattern';

@@ -1,25 +1,28 @@
 .root {
+	position: relative;
 	height: 100%;
 	overflow: hidden;
-	background-image: linear-gradient(
-		160deg,
-		var(--mantine-color-brand-6) 0%,
-		var(--mantine-color-brand-7) 55%,
-		var(--mantine-color-brand-8) 100%
-	);
+	border-radius: var(--mantine-radius-lg);
+	background-color: var(--mantine-color-dark-9);
+}
+
+// Fades out toward the bottom-left so the headline keeps a clean Ink backdrop.
+.pattern {
+	mask-image: radial-gradient(ellipse 75% 65% at 100% 0%, #000 20%, transparent 100%);
+}
+
+.content {
+	position: relative;
 }
 
 .title {
-	font-weight: 600;
-	line-height: 1.25;
-	color: var(--mantine-color-white);
+	font-weight: 700;
+	line-height: 1.15;
+	color: var(--mantine-color-dark-0);
 }
 
 .description {
-	color: var(--mantine-color-brand-0);
+	max-width: 360px;
 	margin-top: var(--mantine-spacing-md);
-}
-
-.preview {
-	background-color: rgb(255 255 255 / 12%);
+	color: var(--mantine-color-dark-1);
 }
