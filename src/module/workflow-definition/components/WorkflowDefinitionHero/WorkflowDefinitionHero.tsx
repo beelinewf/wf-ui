@@ -3,6 +3,8 @@ import React from 'react';
 import { ActionIcon, CloseButton, Text, TextInput, Title } from '@mantine/core';
 import { LuSearch } from 'react-icons/lu';
 
+import { WingPattern } from '@common/component/WingPattern';
+
 import classes from './WorkflowDefinitionHero.module.scss';
 
 interface WorkflowDefinitionHeroProps {
@@ -14,13 +16,15 @@ interface WorkflowDefinitionHeroProps {
 export const WorkflowDefinitionHero: React.FC<WorkflowDefinitionHeroProps> = ({ name, onNameChange }) => {
 	return (
 		<div className={classes.root}>
+			<WingPattern className={classes.pattern} scale={0.7} />
+
 			<div className={classes.content}>
 				<Title order={3} className={classes.title}>
 					Build Automations Faster with
 					<br />
 					<span className={classes.highlight}>Versioned</span> Workflow Definitions
 				</Title>
-				<Text fz="sm" c="dimmed" ta="center">
+				<Text fz="sm" ta="center" className={classes.description}>
 					Immutable definitions — every change ships as a new version.
 				</Text>
 
