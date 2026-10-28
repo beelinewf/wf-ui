@@ -7,6 +7,7 @@ export const apiTagConfig = {
 	secret: 'Secret',
 	form: 'Form',
 	role: 'Role',
+	user: 'User',
 	schedule: 'Schedule',
 	me: 'Me',
 } as const;
