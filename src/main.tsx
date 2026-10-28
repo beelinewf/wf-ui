@@ -17,6 +17,8 @@ const root = createRoot(document.getElementById('root')!);
 config
 	.fetchConfigFile()
 	.then(() => {
+		// index.html carries the default name until the configured one is known.
+		if (config.value.BEELINE_UI_NAME) document.title = config.value.BEELINE_UI_NAME;
 		root.render(
 			<StrictMode>
 				<App />
