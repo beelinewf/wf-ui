@@ -18,7 +18,8 @@ RUN APP_VERSION="$APP_VERSION" npm run build
 FROM openresty/openresty:1.27.1.2-0-alpine AS runtime
 
 ENV BEELINE_UI_NAME="Beeline" \
-	BEELINE_UI_API="http://localhost:9999"
+	BEELINE_UI_API="http://localhost:9999" \
+	BEELINE_UI_ORG_URL="https://github.com/beelinewf"
 
 COPY <<'EOF' /etc/nginx/conf.d/default.conf
 init_by_lua_block {
