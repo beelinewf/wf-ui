@@ -3,6 +3,8 @@ export type ConfigValue = {
 	BEELINE_UI_API: string;
 	/** Optional link to where role assignments are managed in the identity provider. */
 	BEELINE_UI_IDP_ADMIN_URL: string;
+	/** Optional link behind the copyright holder on the login page. */
+	BEELINE_UI_ORG_URL: string;
 };
 
 export class Config {
@@ -14,6 +16,7 @@ export class Config {
 		BEELINE_UI_NAME: '',
 		BEELINE_UI_API: '',
 		BEELINE_UI_IDP_ADMIN_URL: '',
+		BEELINE_UI_ORG_URL: '',
 	};
 
 	public async fetchConfigFile() {
