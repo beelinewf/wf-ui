@@ -32,6 +32,14 @@ export class Config {
 		return this.config;
 	}
 
+	/** Synchronous read for render code; main.tsx loads the config before the app mounts. */
+	public get value() {
+		if (!this.isReady) {
+			throw new Error('Config is not ready');
+		}
+		return this.config;
+	}
+
 	private async load() {
 		try {
 			const res = await fetch(`${import.meta.env.BASE_URL}config.json`, { cache: 'no-store' });
