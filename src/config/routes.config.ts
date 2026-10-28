@@ -13,6 +13,7 @@ import { MainLayout } from '@module/app/components/AppMainLayout';
 import { dashboardRoutes } from '@module/dashboard/dashboard.routes';
 import { formEngineRoutes } from '@module/form-engine/form-engine.routes';
 import { nodeDefinitionRoutes } from '@module/node-definition/node-definition.routes';
+import { roleRoutes } from '@module/role/role.routes';
 import { scheduleRoutes } from '@module/schedule/schedule.routes';
 import { secretRoutes } from '@module/secret/secret.routes';
 import { settingsRoutes } from '@module/settings/settings.routes';
@@ -48,6 +49,7 @@ export const routesConfig = createBrowserRouter([
 							formEngineRoutes,
 							secretRoutes,
 							userRoutes,
+							roleRoutes,
 							settingsRoutes,
 							{
 								path: '*',

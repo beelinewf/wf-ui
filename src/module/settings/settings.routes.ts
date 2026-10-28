@@ -1,7 +1,5 @@
 import { Navigate, type RouteObject } from 'react-router';
 
-import { roleRoutes } from '@module/role/role.routes';
-
 import { MyAccessPage } from './pages/MyAccessPage';
 import { PreferencePage } from './pages/PreferencePage';
 import { SettingsLayoutPage } from './pages/SettingsLayoutPage';
@@ -14,6 +12,5 @@ export const settingsRoutes: RouteObject = {
 		{ path: 'preference', Component: PreferencePage },
 		// Everyone may see what they hold, so this page has no permission gate.
 		{ path: 'access', Component: MyAccessPage },
-		roleRoutes,
 	],
 };
