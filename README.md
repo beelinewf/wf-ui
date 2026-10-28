@@ -13,7 +13,7 @@ npm install
 npm run dev
 ```
 
-Dev server proxies `/wf-engine` to `http://localhost:8080`. If your workflow engine runs somewhere else:
+Runtime config for dev lives in [`public/config.json`](./public/config.json). Dev server proxies the relative `BEELINE_UI_API` path (`/wf-engine`) to `http://localhost:8080`. If your workflow engine runs somewhere else:
 
 ```
 BEELINE_API_PROXY=http://localhost:9999 npm run dev
@@ -32,6 +32,7 @@ Env:
 - `BEELINE_UI_NAME` - app name, default `Beeline`
 - `BEELINE_UI_API` - workflow engine API url, default `http://localhost:9999`
 - `BEELINE_UI_IDP_ADMIN_URL` - optional, identity provider admin page linked from Settings → Roles
+- `BEELINE_UI_ORG_URL` - optional, link behind the copyright on the login page, default `https://github.com/beelinewf`
 
 The backend doesn't send CORS headers, so you probably need to put both behind same reverse proxy.
 

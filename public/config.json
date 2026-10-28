@@ -1,4 +1,6 @@
 {
 	"BEELINE_UI_NAME": "Beeline",
-	"BEELINE_UI_API": "/wf-engine"
+	"BEELINE_UI_API": "/wf-engine",
+	"BEELINE_UI_IDP_ADMIN_URL": "",
+	"BEELINE_UI_ORG_URL": "https://github.com/beelinewf"
 }

@@ -2,6 +2,8 @@ import React from 'react';
 
 import { Image } from '@mantine/core';
 
+import { config } from '@config/config';
+
 import symbol from '@assets/brand/beeline-logo-m.svg';
 import lockupOnDark from '@assets/brand/beeline-logo-xl-on-dark.svg';
 import lockup from '@assets/brand/beeline-logo-xl.svg';
@@ -22,14 +24,16 @@ interface BrandMarkProps {
 }
 
 export const BrandMark: React.FC<BrandMarkProps> = ({ size = 32, variant = 'lockup', tone = 'light' }) => {
+	const alt = config.value.BEELINE_UI_NAME || 'Beeline';
+
 	if (variant === 'symbol') {
-		return <Image src={symbol} alt="Beeline" w={size * SYMBOL_RATIO} h={size} className={classes.logo} />;
+		return <Image src={symbol} alt={alt} w={size * SYMBOL_RATIO} h={size} className={classes.logo} />;
 	}
 
 	return (
 		<Image
 			src={tone === 'dark' ? lockupOnDark : lockup}
-			alt="Beeline"
+			alt={alt}
 			w={size * LOCKUP_RATIO}
 			h={size}
 			className={classes.logo}

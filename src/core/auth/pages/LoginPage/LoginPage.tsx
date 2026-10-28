@@ -18,6 +18,8 @@ import {
 import { LuArrowRight, LuTriangleAlert } from 'react-icons/lu';
 import { useLocation, useNavigate } from 'react-router';
 
+import { config } from '@config/config';
+
 import { AUTH_ANONYMOUS_TOKEN } from '@core/auth/auth.constants';
 import { readReturnTo } from '@core/auth/auth.utils';
 import { LoginForm } from '@core/auth/components/LoginForm';
@@ -53,6 +55,8 @@ export const LoginPage: React.FC = () => {
 	const location = useLocation();
 	const dispatch = useCoreDispatch();
 	const returnTo = readReturnTo(location.state);
+	const { BEELINE_UI_NAME, BEELINE_UI_ORG_URL: orgUrl } = config.value;
+	const copyrightHolder = `${BEELINE_UI_NAME || 'Beeline'} And Contributors`;
 
 	const { data: authConfig, isLoading: isConfigLoading, isError: isConfigError } = useGetAuthConfigQuery();
 	const [verifyApiToken, { isLoading: isVerifying }] = useVerifyApiTokenMutation();
@@ -164,9 +168,13 @@ export const LoginPage: React.FC = () => {
 				<Group justify="space-between" wrap="wrap" gap="xs">
 					<Text fz="xs" c="dimmed">
 						Copyright &copy; 2026{' '}
-						<Anchor fz={'xs'} target="_blank" href="https://github.com/beelinewf">
-							Beeline And Contributors
-						</Anchor>
+						{orgUrl ? (
+							<Anchor fz={'xs'} target="_blank" href={orgUrl}>
+								{copyrightHolder}
+							</Anchor>
+						) : (
+							copyrightHolder
+						)}
 					</Text>
 				</Group>
 			</Stack>
