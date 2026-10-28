@@ -13,3 +13,6 @@ export const issuerLabel = (issuer: string) => {
 		return issuer;
 	}
 };
+
+/** The tail of a user id, as the breadcrumb shortens uuids. */
+export const shortUserId = (id: string) => `#${id.slice(-8)}`;
