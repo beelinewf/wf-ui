@@ -16,6 +16,7 @@ import { nodeDefinitionRoutes } from '@module/node-definition/node-definition.ro
 import { scheduleRoutes } from '@module/schedule/schedule.routes';
 import { secretRoutes } from '@module/secret/secret.routes';
 import { settingsRoutes } from '@module/settings/settings.routes';
+import { userRoutes } from '@module/user/user.routes';
 import { workflowDefinitionRoutes } from '@module/workflow-definition/workflow-definition.routes';
 import { workflowRunRoutes } from '@module/workflow-run/workflow-run.routes';
 
@@ -46,6 +47,7 @@ export const routesConfig = createBrowserRouter([
 							scheduleRoutes,
 							formEngineRoutes,
 							secretRoutes,
+							userRoutes,
 							settingsRoutes,
 							{
 								path: '*',
