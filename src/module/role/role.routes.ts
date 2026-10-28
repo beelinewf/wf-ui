@@ -6,9 +6,8 @@ import { Permission, RequirePermission } from '@core/auth/authorization';
 
 import { RoleListPage } from './pages/RoleListPage';
 
-/** Mounted under settings, so the path is relative to `/app/settings`. */
 export const roleRoutes: RouteObject = {
-	path: 'roles',
+	path: 'role',
 	element: createElement(RequirePermission, { rule: Permission.RolesRead }),
 	children: [{ index: true, Component: RoleListPage }],
 };

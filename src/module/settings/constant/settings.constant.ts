@@ -1,6 +1,4 @@
-import { LuShieldCheck, LuSlidersHorizontal, LuUserRound } from 'react-icons/lu';
-
-import { Permission } from '@core/auth/authorization';
+import { LuSlidersHorizontal, LuUserRound } from 'react-icons/lu';
 
 import type { ListViewKey, ListViewPreference } from '@module/settings/types/ListViewPreference';
 import type { SettingsMenuItem } from '@module/settings/types/SettingsMenuItem';
@@ -34,13 +32,5 @@ export const SETTINGS_MENU: SettingsMenuItem[] = [
 		description: 'Your roles and permissions',
 		icon: LuUserRound,
 		to: '/app/settings/access',
-	},
-	{
-		id: 'roles',
-		label: 'Roles',
-		description: 'Who can do what',
-		icon: LuShieldCheck,
-		to: '/app/settings/roles',
-		permission: Permission.RolesRead,
 	},
 ];

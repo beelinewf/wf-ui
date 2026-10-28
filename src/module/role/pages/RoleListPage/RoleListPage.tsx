@@ -1,7 +1,19 @@
 import React, { useState } from 'react';
 
-import { Alert, Anchor, Button, Group, Paper, Stack, Text, ThemeIcon, Title } from '@mantine/core';
-import { LuCircleAlert, LuExternalLink, LuInfo, LuShieldCheck } from 'react-icons/lu';
+import {
+	ActionIcon,
+	Alert,
+	Anchor,
+	Button,
+	Group,
+	ScrollArea,
+	Stack,
+	Text,
+	ThemeIcon,
+	Title,
+	Tooltip,
+} from '@mantine/core';
+import { LuCircleAlert, LuExternalLink, LuInfo, LuRefreshCw, LuShieldCheck } from 'react-icons/lu';
 
 import { config } from '@config/config';
 
@@ -11,6 +23,8 @@ import { RoleDetailDrawer } from '@module/role/components/RoleDetailDrawer';
 import { RolePermissionMatrix } from '@module/role/components/RolePermissionMatrix';
 import { useListRolesQuery } from '@module/role/hooks';
 import type { Role } from '@module/role/types/Role';
+
+import classes from './RoleListPage.module.scss';
 
 const SKELETON_COLUMNS = 3;
 
@@ -56,22 +70,35 @@ export const RoleListPage: React.FC = () => {
 	};
 
 	return (
-		<Paper withBorder radius="md" p="lg">
-			<Stack gap="md">
-				<Group justify="space-between" align="flex-start" gap="sm">
+		<ScrollArea h="100%" className={classes.canvas}>
+			<Stack gap="lg" p={{ base: 'md', md: 'xl' }} maw={1180} mx="auto">
+				<Group justify="space-between" align="flex-end" gap="sm">
 					<div>
-						<Title order={3} fz="md">
+						<Title order={2} fz={22}>
 							Roles
 						</Title>
-						<Text c="dimmed" fz="sm">
+						<Text fz="sm" c="dimmed">
 							What each role can do. Select a role for its details.
 						</Text>
 					</div>
-					{result && (
-						<Text fz="sm" c="dimmed">
-							{result.items.length} {result.items.length === 1 ? 'role' : 'roles'}
-						</Text>
-					)}
+					<Group gap="xs">
+						{result && (
+							<Text fz="sm" c="dimmed">
+								{result.items.length} {result.items.length === 1 ? 'role' : 'roles'}
+							</Text>
+						)}
+						<Tooltip label="Refresh">
+							<ActionIcon
+								variant="default"
+								size={36}
+								aria-label="Refresh roles"
+								onClick={refetch}
+								loading={isFetching && !!result}
+							>
+								<LuRefreshCw size={16} />
+							</ActionIcon>
+						</Tooltip>
+					</Group>
 				</Group>
 
 				<Alert color="blue" variant="light" icon={<LuInfo size={16} />} p="xs">
@@ -89,10 +116,16 @@ export const RoleListPage: React.FC = () => {
 					</Text>
 				</Alert>
 
-				<div aria-busy={isFetching}>{renderMatrix()}</div>
+				<div
+					className={classes.results}
+					data-loading={(isFetching && !!result) || undefined}
+					aria-busy={isFetching}
+				>
+					{renderMatrix()}
+				</div>
 			</Stack>
 
 			<RoleDetailDrawer role={selected} onClose={() => setSelected(null)} />
-		</Paper>
+		</ScrollArea>
 	);
 };
