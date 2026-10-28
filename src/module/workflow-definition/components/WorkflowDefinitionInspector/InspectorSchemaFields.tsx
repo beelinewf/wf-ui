@@ -14,6 +14,7 @@ import {
 } from '@module/form-engine/components/SchemaForm';
 import { nodeTypeSchema, selectNodeTypeCatalog } from '@module/node-type/utils';
 import { useListRolesQuery } from '@module/role/hooks';
+import { UserPicker } from '@module/user/components/UserPicker';
 import { useWorkflowDefinitionEditorNodeActions } from '@module/workflow-definition/hooks';
 import { selectEditorIssues } from '@module/workflow-definition/store';
 import type { WorkflowDefinitionEditorNode } from '@module/workflow-definition/types/WorkflowDefinitionEditorNode';
@@ -126,6 +127,21 @@ export const InspectorSchemaFields: React.FC<InspectorSchemaFieldsProps> = ({ no
 					acceptValueOnBlur
 					splitChars={[]}
 					error={error}
+				/>
+			);
+		}
+
+		if (path === 'allowed_users') {
+			const users = Array.isArray(value) ? (value as { id?: unknown }[]) : [];
+			return (
+				<UserPicker
+					label={labelNode}
+					description={description}
+					placeholder="No user restriction"
+					value={users.map((user) => String(user?.id ?? '')).filter(Boolean)}
+					onChange={(ids) => onChange(ids.length > 0 ? ids.map((id) => ({ id })) : undefined)}
+					error={error}
+					readOnly={field.readOnly}
 				/>
 			);
 		}

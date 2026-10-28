@@ -36,6 +36,8 @@ export interface WorkflowDefinitionNode {
 	/** input: the forms-library form the frontend renders for this node. */
 	form_id?: string;
 	allowed_roles?: string[];
+	/** input: users.id uuids allowed to deliver, a union with allowed_roles. */
+	allowed_users?: { id: string }[];
 	record_actor?: boolean;
 	public?: boolean;
 
