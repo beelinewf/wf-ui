@@ -55,8 +55,8 @@ export const LoginPage: React.FC = () => {
 	const location = useLocation();
 	const dispatch = useCoreDispatch();
 	const returnTo = readReturnTo(location.state);
-	const { BEELINE_UI_NAME, BEELINE_UI_ORG_URL: orgUrl } = config.value;
-	const copyrightHolder = `${BEELINE_UI_NAME || 'Beeline'} And Contributors`;
+	const { BEELINE_UI_ORG_URL: orgUrl } = config.value;
+	const copyrightHolder = 'BeelineWF And Contributors';
 
 	const { data: authConfig, isLoading: isConfigLoading, isError: isConfigError } = useGetAuthConfigQuery();
 	const [verifyApiToken, { isLoading: isVerifying }] = useVerifyApiTokenMutation();

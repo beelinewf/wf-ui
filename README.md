@@ -40,4 +40,4 @@ The backend doesn't send CORS headers, so you probably need to put both behind s
 
 MIT. See [LICENSE](./LICENSE).
 
-Copyright (c) 2026 Muhammad Randa Syafridamara
+Copyright (c) 2026 BeelineWF And Contributors.
