@@ -1,0 +1,1 @@
+export { UserDetailDrawer } from './UserDetailDrawer';
