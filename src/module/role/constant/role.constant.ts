@@ -19,6 +19,7 @@ export const PERMISSION_META: Record<Permission, { group: PermissionGroupId; lab
 	[Permission.FormsWrite]: { group: 'forms', label: 'Create, edit and delete forms' },
 	[Permission.StatisticsRead]: { group: 'statistics', label: 'View dashboard statistics' },
 	[Permission.RolesRead]: { group: 'roles', label: 'View roles and their permissions' },
+	[Permission.UsersRead]: { group: 'users', label: 'View the user directory' },
 };
 
 const GROUP_LABELS: Record<PermissionGroupId, string> = {
@@ -29,6 +30,7 @@ const GROUP_LABELS: Record<PermissionGroupId, string> = {
 	forms: 'Forms',
 	statistics: 'Statistics',
 	roles: 'Roles',
+	users: 'Users',
 };
 
 /** The Permission catalog grouped by resource, in display order. */
