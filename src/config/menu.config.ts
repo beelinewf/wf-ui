@@ -6,6 +6,7 @@ import {
 	LuKeyRound,
 	LuPlay,
 	LuSettings,
+	LuUsers,
 	LuWorkflow,
 } from 'react-icons/lu';
 
@@ -52,6 +53,7 @@ export const menuConfig: MenuConfig = {
 		},
 		{ id: 'form', label: 'Forms', icon: LuClipboardList, to: '/app/form', permission: Permission.FormsRead },
 		{ id: 'secret', label: 'Secrets', icon: LuKeyRound, to: '/app/secret', permission: Permission.SecretsRead },
+		{ id: 'user', label: 'Users', icon: LuUsers, to: '/app/user', permission: Permission.UsersRead },
 	],
 	bottom: [{ id: 'settings', label: 'Settings', icon: LuSettings, to: '/app/settings' }],
 };
