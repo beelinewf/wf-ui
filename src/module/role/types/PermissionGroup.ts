@@ -7,7 +7,8 @@ export type PermissionGroupId =
 	| 'secrets'
 	| 'forms'
 	| 'statistics'
-	| 'roles';
+	| 'roles'
+	| 'users';
 
 export interface PermissionGroup {
 	id: PermissionGroupId;
