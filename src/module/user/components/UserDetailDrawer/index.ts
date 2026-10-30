@@ -1,1 +1,0 @@
-export { UserDetailDrawer } from './UserDetailDrawer';

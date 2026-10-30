@@ -15,8 +15,16 @@
 
 .row {
 	cursor: pointer;
+
+	&[data-selected] {
+		background-color: var(--mantine-primary-color-light);
+	}
 }
 
 .nowrap {
 	white-space: nowrap;
+}
+
+.row[data-disabled] {
+	opacity: 0.6;
 }

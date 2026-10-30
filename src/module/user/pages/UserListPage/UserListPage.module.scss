@@ -2,6 +2,12 @@
 	background-color: var(--mantine-color-gray-0);
 }
 
+// Keeps the list clear of the floating side panel; the layout publishes its width as an inset.
+.inset {
+	padding-right: var(--layout-inset-right, 0px);
+	transition: padding-right 150ms ease;
+}
+
 .results {
 	transition: opacity 150ms ease;
 
