@@ -1,0 +1,1 @@
+export { RolePermissionPicker } from './RolePermissionPicker';

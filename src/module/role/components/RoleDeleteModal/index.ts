@@ -1,0 +1,1 @@
+export { RoleDeleteModal } from './RoleDeleteModal';

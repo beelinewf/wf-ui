@@ -1,3 +1,9 @@
 import { roleApi } from '@module/role/api';
 
-export const { useListRolesQuery, useGetRoleQuery } = roleApi;
+export const {
+	useListRolesQuery,
+	useGetRoleQuery,
+	useCreateRoleMutation,
+	useUpdateRoleMutation,
+	useDeleteRoleMutation,
+} = roleApi;

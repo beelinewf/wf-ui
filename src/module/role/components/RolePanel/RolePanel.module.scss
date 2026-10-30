@@ -1,0 +1,36 @@
+.root {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	min-height: 0;
+	background-color: var(--mantine-color-white);
+}
+
+.header {
+	display: flex;
+	flex-shrink: 0;
+	gap: var(--mantine-spacing-xs);
+	align-items: center;
+	padding: var(--mantine-spacing-sm) var(--mantine-spacing-sm) var(--mantine-spacing-sm) var(--mantine-spacing-md);
+	border-bottom: 1px solid var(--mantine-color-gray-2);
+}
+
+.headerTitle {
+	flex: 1;
+	min-width: 0;
+}
+
+.body {
+	flex: 1;
+	min-height: 0;
+}
+
+.footer {
+	display: flex;
+	flex-shrink: 0;
+	gap: var(--mantine-spacing-xs);
+	align-items: center;
+	justify-content: space-between;
+	padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+	border-top: 1px solid var(--mantine-color-gray-2);
+}

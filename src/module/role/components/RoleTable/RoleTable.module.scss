@@ -1,0 +1,26 @@
+.root {
+	overflow: hidden;
+}
+
+.head {
+	background-color: var(--mantine-color-gray-0);
+
+	th {
+		font-size: var(--mantine-font-size-xs);
+		font-weight: 600;
+		color: var(--mantine-color-gray-7);
+		white-space: nowrap;
+	}
+}
+
+.row {
+	cursor: pointer;
+
+	&[data-selected] {
+		background-color: var(--mantine-primary-color-light);
+	}
+}
+
+.nowrap {
+	white-space: nowrap;
+}
