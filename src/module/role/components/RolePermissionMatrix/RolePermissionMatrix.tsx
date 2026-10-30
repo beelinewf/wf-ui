@@ -12,6 +12,8 @@ import classes from './RolePermissionMatrix.module.scss';
 interface RolePermissionMatrixProps {
 	roles: Role[];
 	onSelectRole: (role: Role) => void;
+	/** Rendered beside each role's name in the header, e.g. an edit/delete menu. */
+	renderRoleActions?: (role: Role) => React.ReactNode;
 	/** Renders placeholder columns while the catalog loads. */
 	skeletonColumns?: number;
 }
@@ -28,14 +30,25 @@ const GrantCell: React.FC<{ granted: boolean; viaWildcard: boolean }> = ({ grant
 };
 
 /** Rows are the permission catalog grouped by resource, columns are roles: who can do what at a glance. */
-export const RolePermissionMatrix: React.FC<RolePermissionMatrixProps> = ({ roles, onSelectRole, skeletonColumns }) => {
-	const grants = roles.map((role) => ({ wildcard: hasWildcard(role.permissions), set: new Set(role.permissions) }));
+export const RolePermissionMatrix: React.FC<RolePermissionMatrixProps> = ({
+	roles,
+	onSelectRole,
+	renderRoleActions,
+	skeletonColumns,
+}) => {
+	const grants = roles.map((role) => ({
+		wildcard: hasWildcard(role.permissions),
+		set: new Set(role.permissions),
+	}));
 	const unknown = unrecognizedPermissions(roles.flatMap((role) => role.permissions));
 
 	const sections: { id: string; label: React.ReactNode; rows: MatrixRow[] }[] = PERMISSION_GROUPS.map((group) => ({
 		id: group.id,
 		label: group.label,
-		rows: group.permissions.map((permission) => ({ permission, label: PERMISSION_META[permission].label })),
+		rows: group.permissions.map((permission) => ({
+			permission,
+			label: PERMISSION_META[permission].label,
+		})),
 	}));
 	if (unknown.length > 0) {
 		sections.push({
@@ -67,13 +80,16 @@ export const RolePermissionMatrix: React.FC<RolePermissionMatrixProps> = ({ role
 									))
 								: roles.map((role) => (
 										<Table.Th key={role.name} className={classes.cell}>
-											<UnstyledButton
-												className={classes.roleButton}
-												onClick={() => onSelectRole(role)}
-												aria-label={`Show role ${role.name}`}
-											>
-												{role.name}
-											</UnstyledButton>
+											<Group gap={2} justify="center" wrap="nowrap">
+												<UnstyledButton
+													className={classes.roleButton}
+													onClick={() => onSelectRole(role)}
+													aria-label={`Show role ${role.name}`}
+												>
+													{role.name}
+												</UnstyledButton>
+												{renderRoleActions?.(role)}
+											</Group>
 										</Table.Th>
 									))}
 						</Table.Tr>
