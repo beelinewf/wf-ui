@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 
-import { Button, Group, Stack, Text, Textarea } from '@mantine/core';
+import { Alert, Button, Group, Stack, Text, Textarea } from '@mantine/core';
+import { LuInfo } from 'react-icons/lu';
 
-import { parseRawPayload } from './WorkflowRunInputModal.utils';
+import { inputBodyTypes, parseRawPayload } from './WorkflowRunInputModal.utils';
 
 interface WorkflowRunInputRawBodyProps {
+	/** `pending_input.accept`: the bodies the node takes. */
+	accept?: string[];
 	onCancel: () => void;
 	/** Resolves once the engine accepted the payload; a rejection's message is shown. */
 	onSubmit: (payload: unknown) => Promise<void>;
@@ -28,10 +31,29 @@ export const WorkflowRunInputPayloadField: React.FC<{
 );
 
 /** Today's raw JSON delivery, for an input without a form or whose form can't be loaded. */
-export const WorkflowRunInputRawBody: React.FC<WorkflowRunInputRawBodyProps> = ({ onCancel, onSubmit }) => {
+export const WorkflowRunInputRawBody: React.FC<WorkflowRunInputRawBodyProps> = ({ accept, onCancel, onSubmit }) => {
 	const [raw, setRaw] = useState('');
 	const [error, setError] = useState<string | null>(null);
 	const [submitting, setSubmitting] = useState(false);
+
+	// Files need a form to pick them; JSON can't reach a node that only takes multipart.
+	if (!inputBodyTypes(accept).json) {
+		return (
+			<Stack gap="md">
+				<Alert color="gray" variant="light" icon={<LuInfo size={16} />} p="sm">
+					<Text fz="xs">
+						This input only takes multipart uploads, and there's no form to pick files with. Give the input
+						node a form with file fields, or deliver with an HTTP client.
+					</Text>
+				</Alert>
+				<Group justify="flex-end">
+					<Button variant="default" onClick={onCancel}>
+						Close
+					</Button>
+				</Group>
+			</Stack>
+		);
+	}
 
 	const submit = async () => {
 		const parsed = parseRawPayload(raw);

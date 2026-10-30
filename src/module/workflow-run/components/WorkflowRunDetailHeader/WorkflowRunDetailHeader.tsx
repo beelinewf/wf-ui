@@ -328,6 +328,7 @@ export const WorkflowRunDetailHeader: React.FC<WorkflowRunDetailHeaderProps> = (
 										</Text>
 									</>
 								)}
+								{detail.pending_input.accept?.includes('multipart/form-data') && ' · takes files'}
 							</Text>
 						</Text>
 					) : (

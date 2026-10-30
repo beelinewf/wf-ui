@@ -10,4 +10,6 @@ export interface WorkflowRunPendingInput {
 	form_id?: string | null;
 	/** The form frozen at start, for a run started with `snapshot_forms`; absent otherwise. */
 	form?: WorkflowRunPendingInputForm | null;
+	/** The bodies the node takes; absent is JSON only. */
+	accept?: string[];
 }
