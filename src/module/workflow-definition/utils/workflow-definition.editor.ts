@@ -815,6 +815,9 @@ export const validateEditorDocument = (
 			case 'group':
 				checkScope(node.id, `Group "${config.name}"`);
 				break;
+			case 'input':
+				for (const { message, path } of inputAcceptIssues(config)) nodeIssue(node, message, { path });
+				break;
 			case 'parallel_start':
 				// A parallel_start definition carries graph ids of the workflow it was made for; only the engine checks them.
 				if (node.id === rootId) break;
@@ -875,6 +878,29 @@ const parallelProblemMessage = ({ kind, branch, detail }: ParallelProblem) => {
 		case 'nested_cycle':
 			return 'This parallel is nested in its own branches';
 	}
+};
+
+/** The engine's rules tying an input node's `accept`, `channel` and `storage` together. */
+export const inputAcceptIssues = (config: Pick<WorkflowDefinitionNode, 'accept' | 'channel' | 'storage'>) => {
+	const issues: { message: string; path: string }[] = [];
+	const multipart = !!config.accept?.includes('multipart/form-data');
+	if (config.accept && config.accept.length === 0) {
+		issues.push({ message: 'Accept at least one body type', path: 'accept' });
+	}
+	if (multipart && config.channel !== 'http') {
+		issues.push({ message: 'Multipart input needs the http channel', path: 'accept' });
+	}
+	// An empty bucket is the schema check's to report; this covers storage left out altogether.
+	if (multipart && !config.storage) {
+		issues.push({ message: 'Multipart input needs a storage bucket for its files', path: 'storage.bucket' });
+	}
+	if (!multipart && config.storage) {
+		issues.push({
+			message: 'Storage is only used by multipart input; remove it or accept multipart',
+			path: 'storage',
+		});
+	}
+	return issues;
 };
 
 /** The pair link both halves must agree on: the partner exists, is the other half, points back and shares the scope. */

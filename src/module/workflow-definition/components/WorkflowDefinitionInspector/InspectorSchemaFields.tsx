@@ -12,6 +12,7 @@ import {
 	type SchemaFieldContext,
 	type SchemaFieldOverride,
 } from '@module/form-engine/components/SchemaForm';
+import { useLazyGetFormQuery } from '@module/form-engine/hooks';
 import { nodeTypeSchema, selectNodeTypeCatalog } from '@module/node-type/utils';
 import { useListRolesQuery } from '@module/role/hooks';
 import { UserPicker } from '@module/user/components/UserPicker';
@@ -23,6 +24,8 @@ import { isContextPath } from '@module/workflow-definition/utils';
 
 import { useContextTypes } from './InspectorContextTypes.context';
 import { ContextInput, DurationInput, HeadersField, JsonField, SectionLabel } from './InspectorControls';
+import { InspectorInputAccept } from './InspectorInputAccept';
+import { withMultipart } from './InspectorInputAccept.utils';
 import { branchDeclaration, usePartner } from './InspectorStructuralFields.utils';
 
 /** Wording and widgets the schema can't say, by field path. Everything else comes from the schema as served. */
@@ -40,6 +43,10 @@ const FIELD_OVERRIDES: Record<string, SchemaFieldOverride> = {
 	post_script: {
 		label: 'Post-script',
 		description: 'Runs after the output is merged. The native output is available as `output`.',
+	},
+	accept: {
+		label: 'Accepts',
+		description: 'The bodies a delivery may use. Multipart carries files, stored in object storage.',
 	},
 	timeout: { description: 'Defaults to the engine timeout, capped by the engine maximum', placeholder: '30s' },
 	delay: {
@@ -73,6 +80,18 @@ export const InspectorSchemaFields: React.FC<InspectorSchemaFieldsProps> = ({ no
 	const contextTypes = useContextTypes();
 	const partner = usePartner(node);
 	const roles = useListRolesQuery(undefined, { skip: !keys.includes('allowed_roles') });
+	const [resolveForm] = useLazyGetFormQuery();
+
+	/** Picking a multipart form makes the node take multipart too, opening its storage settings. */
+	const pickForm = async (id: string | undefined) => {
+		patch({ form_id: id });
+		if (!id) return;
+		const form = await resolveForm(id, true)
+			.unwrap()
+			.catch(() => null);
+		if (form?.content_type !== 'multipart/form-data' || node.config.accept?.includes('multipart/form-data')) return;
+		patch({ ...withMultipart(node.config.accept, true), storage: node.config.storage ?? { bucket: '' } });
+	};
 
 	const schema = nodeTypeSchema(catalog, node.config.type);
 	if (!schema || keys.length === 0) return null;
@@ -108,12 +127,26 @@ export const InspectorSchemaFields: React.FC<InspectorSchemaFieldsProps> = ({ no
 					label={labelNode}
 					description={description}
 					value={text || undefined}
-					onChange={onChange}
+					onChange={(id) => void pickForm(id)}
 					error={error}
 					readOnly={field.readOnly}
 				/>
 			);
 		}
+		if (path === 'accept') {
+			return (
+				<InspectorInputAccept
+					node={node}
+					label={label}
+					description={description}
+					errors={errors}
+					readOnly={field.readOnly}
+				/>
+			);
+		}
+		// Edited with `accept`, and only while it lists multipart.
+		if (path === 'storage') return <></>;
+
 		if (path === 'allowed_roles') {
 			return (
 				<TagsInput
