@@ -55,7 +55,10 @@ const NO_PLACEHOLDER: ReadonlySet<FormWidget> = new Set([
 	'checkbox-group',
 	'group',
 	'repeater',
+	'file',
 ]);
+
+const BYTES_PER_MB = 1024 * 1024;
 
 const optionalNumber = (value: string | number) => (typeof value === 'number' ? value : undefined);
 
@@ -78,6 +81,7 @@ const DefaultInput: React.FC<{ field: FormDraftInputField; onChange: (value: unk
 		case 'group':
 		case 'repeater':
 		case 'remote-select':
+		case 'file':
 			return null;
 		case 'switch':
 		case 'checkbox':
@@ -158,6 +162,42 @@ const ConstraintInputs: React.FC<{
 		/>
 	);
 	const listRules = isListWidget(field.widget) || field.widget === 'repeater' || !!field.options?.multiple;
+
+	if (field.widget === 'file') {
+		const maxBytes = rules.maxFileBytes;
+		return (
+			<Stack gap={6}>
+				<TagsInput
+					size="xs"
+					label="Allowed types"
+					description="MIME types like application/pdf or image/*; none allows any"
+					placeholder="image/*"
+					value={rules.allowedMimeTypes ?? []}
+					onChange={(next) => onChange({ allowedMimeTypes: next.length ? next : undefined })}
+				/>
+				<NumberInput
+					size="xs"
+					label="Max size per file"
+					description="The engine also caps every file and the whole upload"
+					suffix=" MB"
+					min={0}
+					decimalScale={2}
+					value={maxBytes === undefined ? '' : Number((maxBytes / BYTES_PER_MB).toFixed(2))}
+					onChange={(next) =>
+						onChange({
+							maxFileBytes: typeof next === 'number' ? Math.round(next * BYTES_PER_MB) : undefined,
+						})
+					}
+				/>
+				{field.multiple && (
+					<Group grow gap={6}>
+						{number('Min files', 'minItems', 0)}
+						{number('Max files', 'maxItems', 0)}
+					</Group>
+				)}
+			</Stack>
+		);
+	}
 
 	if (field.widget === 'text' || field.widget === 'textarea') {
 		return (
@@ -307,7 +347,10 @@ export const FormBuilderFieldPanel: React.FC<FormBuilderFieldPanelProps> = ({ bu
 							size="xs"
 							label="Widget"
 							allowDeselect={false}
-							data={Object.entries(FORM_WIDGET_LABELS).map(([value, label]) => ({ value, label }))}
+							data={Object.entries(FORM_WIDGET_LABELS)
+								// A file field only goes top level.
+								.filter(([value]) => topLevel || value !== 'file' || field.widget === 'file')
+								.map(([value, label]) => ({ value, label }))}
 							value={field.widget}
 							onChange={(next) => next && replace(changeDraftWidget(field, next as FormWidget))}
 						/>
@@ -379,6 +422,23 @@ export const FormBuilderFieldPanel: React.FC<FormBuilderFieldPanelProps> = ({ bu
 								onChange={(next) =>
 									patch({ enumValues: castOptions(next, field.valueType), default: undefined })
 								}
+							/>
+						)}
+
+						{field.widget === 'file' && (
+							<Switch
+								size="xs"
+								label="Multiple"
+								description="Accept several files; the value is then a list"
+								checked={!!field.multiple}
+								onChange={(event) => {
+									const { minItems: _min, maxItems: _max, ...rest } = field.constraints;
+									patch({
+										multiple: event.currentTarget.checked,
+										// File counts only apply to a list.
+										constraints: event.currentTarget.checked ? field.constraints : rest,
+									});
+								}}
 							/>
 						)}
 
