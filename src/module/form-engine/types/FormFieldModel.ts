@@ -5,6 +5,16 @@ import type { FormGroupStyle } from './FormGroupStyle';
 import type { FormRemoteOptions } from './FormRemoteOptions';
 import type { FormWidget } from './FormWidget';
 
+/** A file field's rules, read from its schema. */
+export interface FormFieldFile {
+	/** A list of files rather than one. */
+	multiple: boolean;
+	/** `allowed_mime_types`: `type/subtype` or `type/*`; empty allows any type. */
+	accept: string[];
+	/** `max_file_bytes`, per file. */
+	maxBytes?: number;
+}
+
 /** One field of a form, resolved from its schema and `ui`, ready to render, validate and build a payload from. */
 export interface FormFieldModel {
 	key: string;
@@ -23,6 +33,8 @@ export interface FormFieldModel {
 	options?: FormRemoteOptions;
 	/** Only for `group` and `repeater`. */
 	groupStyle?: FormGroupStyle;
+	/** Only for `file`. */
+	file?: FormFieldFile;
 	/** A group's properties, or a repeater's item properties. */
 	children: FormFieldModel[];
 	/** A group or repeater item that sets `additionalProperties: false`. */

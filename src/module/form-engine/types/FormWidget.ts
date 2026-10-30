@@ -13,4 +13,5 @@ export type FormWidget =
 	| 'time'
 	| 'group'
 	| 'repeater'
-	| 'remote-select';
+	| 'remote-select'
+	| 'file';

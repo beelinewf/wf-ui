@@ -6,6 +6,7 @@ import type { FormDraftField, FormDraftInputField } from '@module/form-engine/ty
 import type { FormWidget } from '@module/form-engine/types/FormWidget';
 
 import { isListWidget, newDraftField } from './form.draft';
+import { FORM_MIME_TYPE_PATTERN } from './form.file';
 
 /** Property keys the builder writes: an identifier, so paths and `{{ field.x }}` templates stay unambiguous. */
 export const FORM_KEY_PATTERN = /^[A-Za-z_][A-Za-z0-9_]*$/;
@@ -160,11 +161,12 @@ export const containerOf = (draft: FormDraft, id: string): FormBuilderContainer 
 	return section ? { type: 'section', id: section.id } : { type: 'ungrouped' };
 };
 
-/** Whether `id` can go into `container`: never into itself or its own descendants. */
+/** Whether `id` can go into `container`: never into itself or its own descendants, and a file field only top level. */
 export const canDropInto = (draft: FormDraft, id: string, container: FormBuilderContainer) => {
 	if (container.type !== 'children') return true;
 	if (container.id === id) return false;
 	const location = findDraftField(draft.fields, id);
+	if (location?.field.kind === 'input' && location.field.widget === 'file') return false;
 	if (!location || !hasChildren(location.field)) return true;
 	return !walkDraft(location.field.children).some((item) => item.field.id === container.id);
 };
@@ -255,6 +257,7 @@ const WIDGET_FAMILY: Record<FormWidget, string> = {
 	group: 'object',
 	repeater: 'object',
 	'remote-select': 'remote',
+	file: 'file',
 };
 
 /**
@@ -289,6 +292,23 @@ export const changeDraftWidget = (field: FormDraftInputField, widget: FormWidget
 	};
 };
 
+/** Whether the draft has a file field anywhere; only top-level ones are valid, but any one needs multipart. */
+export const draftHasFileFields = (draft: FormDraft) =>
+	walkDraft(draft.fields).some(({ field }) => field.kind === 'input' && field.widget === 'file');
+
+/** Why the content type doesn't fit the fields, or null. A warning only: the content type is set by hand. */
+export const draftContentTypeWarning = (draft: FormDraft): string | null => {
+	const files = draftHasFileFields(draft);
+	const multipart = draft.contentType === 'multipart/form-data';
+	if (files && !multipart) {
+		return 'The form has file fields but its content type is JSON; files only go out as multipart';
+	}
+	if (!files && multipart) {
+		return 'The content type is multipart but there are no file fields; JSON keeps value types';
+	}
+	return null;
+};
+
 /** What blocks saving: missing names, fields outside a sectioned form's sections, bad keys, empty option lists, remote selects without a URL. */
 export const draftIssues = (draft: FormDraft): string[] => {
 	const issues: string[] = [];
@@ -300,7 +320,7 @@ export const draftIssues = (draft: FormDraft): string[] => {
 			if (!placed.has(field.key)) issues.push(`${field.key}: put it in a section`);
 		}
 	}
-	for (const { field, siblings, path } of walkDraft(draft.fields)) {
+	for (const { field, parent, siblings, path } of walkDraft(draft.fields)) {
 		if (!FORM_KEY_PATTERN.test(field.key)) {
 			issues.push(`${path}: key must start with a letter or _ and use letters, digits and _ only`);
 		}
@@ -311,6 +331,17 @@ export const draftIssues = (draft: FormDraft): string[] => {
 		}
 		if (field.widget === 'remote-select' && !field.options?.url.trim()) issues.push(`${path}: set the request URL`);
 		if (hasChildren(field) && field.children.length === 0) issues.push(`${path}: add at least one field inside`);
+		if (field.widget === 'file') {
+			if (parent) issues.push(`${path}: file fields must be top level, not inside a group or repeater`);
+			for (const type of field.constraints.allowedMimeTypes ?? []) {
+				if (!FORM_MIME_TYPE_PATTERN.test(type))
+					issues.push(`${path}: "${type}" isn't a MIME type like image/png or image/*`);
+			}
+			const max = field.constraints.maxFileBytes;
+			if (max !== undefined && (!Number.isInteger(max) || max <= 0)) {
+				issues.push(`${path}: max file size must be more than 0`);
+			}
+		}
 		if (field.constraints.pattern) {
 			try {
 				new RegExp(field.constraints.pattern, 'u');

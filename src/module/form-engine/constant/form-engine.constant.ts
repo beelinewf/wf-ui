@@ -24,6 +24,7 @@ export const FORM_WIDGET_LABELS: Record<FormWidget, string> = {
 	group: 'Group',
 	repeater: 'Repeater',
 	'remote-select': 'Remote select',
+	file: 'File upload',
 };
 
 export const FORM_GROUP_STYLE_LABELS: Record<FormGroupStyle, string> = {

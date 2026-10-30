@@ -7,7 +7,7 @@ import type { JsonSchema } from '@common/types/JsonSchema';
 
 import { FormRenderer } from '@module/form-engine/components/FormRenderer';
 import { useFormEngine } from '@module/form-engine/hooks';
-import { validateFormPayload } from '@module/form-engine/utils';
+import { describeFiles, validateFormPayload } from '@module/form-engine/utils';
 
 import classes from './FormPreviewPanel.module.scss';
 
@@ -37,7 +37,7 @@ const PreviewBody: React.FC<FormPreviewPanelProps & { context: unknown }> = ({ s
 						<Text fz="xs" fw={600}>
 							Payload
 						</Text>
-						<pre className={classes.json}>{JSON.stringify(engine.payload, null, 2)}</pre>
+						<pre className={classes.json}>{JSON.stringify(describeFiles(engine.payload), null, 2)}</pre>
 					</Stack>
 				</Card>
 				<Card withBorder padding="sm">

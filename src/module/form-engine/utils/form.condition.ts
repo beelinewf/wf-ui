@@ -10,7 +10,7 @@ export const isEmptyValue = (value: unknown) =>
 	value === null ||
 	value === '' ||
 	(Array.isArray(value) && value.length === 0) ||
-	(typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length === 0);
+	(typeof value === 'object' && !Array.isArray(value) && !(value instanceof Blob) && Object.keys(value).length === 0);
 
 /**
  * A condition's field path made concrete for the field being evaluated: each `*` takes the item index at the same

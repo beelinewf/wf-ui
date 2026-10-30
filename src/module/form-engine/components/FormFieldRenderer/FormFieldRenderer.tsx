@@ -30,6 +30,7 @@ import type { FormFieldModel } from '@module/form-engine/types/FormFieldModel';
 import type { FormGroupStyle } from '@module/form-engine/types/FormGroupStyle';
 import { initialObjectValue, isFieldVisible, joinValuePath } from '@module/form-engine/utils';
 
+import { FormFileField } from './FormFileField';
 import { FormJsonField } from './FormJsonField';
 import { FormRemoteSelectField } from './FormRemoteSelectField';
 import { FormTimeField } from './FormTimeField';
@@ -393,6 +394,18 @@ export const FormFieldRenderer: React.FC<FieldProps> = ({ engine, field, path, d
 					{...common}
 					value={value === null || value === undefined ? '' : String(value)}
 					onChange={(event) => set(event.currentTarget.value || null)}
+				/>
+			);
+		case 'file':
+			return (
+				<FormFileField
+					field={field}
+					value={value}
+					errors={Object.entries(form.errors)
+						.filter(([at]) => at === path || at.startsWith(`${path}.`))
+						.map(([, message]) => String(message))}
+					disabled={disabled}
+					onChange={set}
 				/>
 			);
 		case 'json':
