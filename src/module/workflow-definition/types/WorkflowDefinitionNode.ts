@@ -2,7 +2,9 @@ import type { WorkflowDefinitionExecutionConfig } from './WorkflowDefinitionExec
 import type { WorkflowDefinitionFailureRoute } from './WorkflowDefinitionFailureRoute';
 import type { WorkflowDefinitionHookScript } from './WorkflowDefinitionHookScript';
 import type { WorkflowDefinitionHTTPConfig } from './WorkflowDefinitionHTTPConfig';
+import type { WorkflowDefinitionInputAccept } from './WorkflowDefinitionInputAccept';
 import type { WorkflowDefinitionInputChannel } from './WorkflowDefinitionInputChannel';
+import type { WorkflowDefinitionInputStorage } from './WorkflowDefinitionInputStorage';
 import type { WorkflowDefinitionNodeCondition } from './WorkflowDefinitionNodeCondition';
 import type { WorkflowDefinitionNodeType } from './WorkflowDefinitionNodeType';
 import type { WorkflowDefinitionPollerHTTPConfig } from './WorkflowDefinitionPollerHTTPConfig';
@@ -40,6 +42,10 @@ export interface WorkflowDefinitionNode {
 	allowed_users?: { id: string }[];
 	record_actor?: boolean;
 	public?: boolean;
+	/** input: the bodies the node takes; absent is JSON only. Multipart needs `channel: http` and `storage`. */
+	accept?: WorkflowDefinitionInputAccept[];
+	/** input: where multipart files go. Rejected without multipart in `accept`. */
+	storage?: WorkflowDefinitionInputStorage | null;
 
 	http_config?: WorkflowDefinitionHTTPConfig;
 	execution_config?: WorkflowDefinitionExecutionConfig;
