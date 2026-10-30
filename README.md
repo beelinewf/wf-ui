@@ -36,6 +36,22 @@ Env:
 
 The backend doesn't send CORS headers, so you probably need to put both behind same reverse proxy.
 
+## Email login without SSO
+
+For an organization without an identity provider, turn on the engine's built-in email and password login. The login page then shows **Email** first, and users are managed under Users.
+
+Engine settings (`config.yaml`):
+
+- `auth.enabled: true`
+- `auth.local.enabled: true` with a `auth.local.jwt_secret` of at least 32 bytes
+- `auth.local.allow_registration: true` to let people sign up themselves (otherwise an admin creates accounts)
+- `auth.local.public_base_url` pointing at this UI's origin, e.g. `https://wf.example.com`. Verification emails link to `{public_base_url}/verify-email?token=…`
+- `auth.local.email_verification.enabled: true` plus the `auth.local.smtp` settings to require a verified email before sign-in. For local testing, `smtp.host: log` writes the link to the engine log instead of sending mail.
+
+The first admin has to come from somewhere: create them with the API token (`POST /v1/users` with a role that holds `users:write` and `roles:write`), then sign in with Email.
+
+If the UI and engine are on different origins, add `Retry-After` to `infra.http.cors.exposed_headers` so the login and register pages can show how long a rate limit lasts. Otherwise they fall back to a 30-second wait.
+
 ## License
 
 MIT. See [LICENSE](./LICENSE).
