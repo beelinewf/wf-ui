@@ -92,8 +92,10 @@ export class Http {
 		body?: unknown,
 		head?: HTTPHeader,
 	): Promise<HTTPResponse<T>> {
+		// The browser sets a multipart body's Content-Type itself, boundary included.
+		const multipart = body instanceof FormData;
 		const h = this.createHeader({
-			'Content-Type': 'application/json',
+			...(multipart ? {} : { 'Content-Type': 'application/json' }),
 			...head,
 		});
 
@@ -101,6 +103,8 @@ export class Http {
 			method,
 			url: `${url}${this.parseComplexQueryParam(qParam)}`,
 			headers: h,
+			// An upload can take far longer than a JSON call, so it isn't cut off.
+			...(multipart ? { timeout: 0 } : {}),
 		};
 
 		if (method !== 'get' && method !== 'delete' && method !== 'head') {
