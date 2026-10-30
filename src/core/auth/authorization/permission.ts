@@ -14,7 +14,9 @@ export const Permission = {
 	InstancesMigrate: 'instances:migrate',
 	StatisticsRead: 'statistics:read',
 	RolesRead: 'roles:read',
+	RolesWrite: 'roles:write',
 	UsersRead: 'users:read',
+	UsersWrite: 'users:write',
 	SchedulesRead: 'schedules:read',
 	SchedulesWrite: 'schedules:write',
 } as const;

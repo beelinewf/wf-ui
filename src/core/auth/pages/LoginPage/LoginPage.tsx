@@ -1,53 +1,44 @@
 import React, { useState } from 'react';
 
-import {
-	Alert,
-	Anchor,
-	Box,
-	Button,
-	Center,
-	Container,
-	Flex,
-	Group,
-	Loader,
-	SegmentedControl,
-	Stack,
-	Text,
-	Title,
-} from '@mantine/core';
-import { LuArrowRight, LuTriangleAlert } from 'react-icons/lu';
+import { Alert, Button, Center, Loader, SegmentedControl, Stack } from '@mantine/core';
+import { LuArrowRight, LuClock } from 'react-icons/lu';
 import { useLocation, useNavigate } from 'react-router';
-
-import { config } from '@config/config';
 
 import { AUTH_ANONYMOUS_TOKEN } from '@core/auth/auth.constants';
 import { readReturnTo } from '@core/auth/auth.utils';
+import { AuthLayout } from '@core/auth/components/AuthLayout';
+import { LocalLoginForm } from '@core/auth/components/LocalLoginForm';
 import { LoginForm } from '@core/auth/components/LoginForm';
-import { LoginHero } from '@core/auth/components/LoginHero';
 import { OAuthLoginPanel } from '@core/auth/components/OAuthLoginPanel';
 import type { LoginDto } from '@core/auth/dto';
 import { useGetAuthConfigQuery, useVerifyApiTokenMutation } from '@core/auth/hooks';
 import { startOAuthLogin } from '@core/auth/oauth';
-import { setApiKeySession } from '@core/auth/store';
+import { dismissSessionExpired, selectSessionExpired, setApiKeySession } from '@core/auth/store';
+import type { AuthConfig } from '@core/auth/types/AuthConfig';
 import type { AuthMethod } from '@core/auth/types/AuthMethod';
 import { LocalKVStore } from '@core/localKVStore';
-import { useCoreDispatch } from '@core/store';
-
-import { BrandMark } from '@common/component/BrandMark';
-
-import classes from './LoginPage.module.scss';
+import { useCoreDispatch, useCoreSelector } from '@core/store';
 
 const prefStore = new LocalKVStore('auth-pref');
 const METHOD_PREF_KEY = 'method';
 
+// Email first: for an organization without SSO it may be the only way in.
 const METHOD_OPTIONS: { value: AuthMethod; label: string }[] = [
+	{ value: 'local', label: 'Email' },
 	{ value: 'oauth', label: 'SSO' },
 	{ value: 'apiKey', label: 'API Key' },
 ];
 
 const SUBTITLE: Record<AuthMethod, string> = {
+	local: 'Sign in with your email and password',
 	oauth: 'Sign in with your organization account',
 	apiKey: 'Enter your API key',
+};
+
+const isMethodEnabled = (method: AuthMethod, authConfig: AuthConfig) => {
+	if (method === 'local') return authConfig.local_enabled;
+	if (method === 'oauth') return authConfig.enabled;
+	return authConfig.api_token_enabled;
 };
 
 export const LoginPage: React.FC = () => {
@@ -55,8 +46,7 @@ export const LoginPage: React.FC = () => {
 	const location = useLocation();
 	const dispatch = useCoreDispatch();
 	const returnTo = readReturnTo(location.state);
-	const { BEELINE_UI_ORG_URL: orgUrl } = config.value;
-	const copyrightHolder = 'BeelineWF And Contributors';
+	const sessionExpired = useCoreSelector(selectSessionExpired);
 
 	const { data: authConfig, isLoading: isConfigLoading, isError: isConfigError } = useGetAuthConfigQuery();
 	const [verifyApiToken, { isLoading: isVerifying }] = useVerifyApiTokenMutation();
@@ -68,13 +58,16 @@ export const LoginPage: React.FC = () => {
 	// An engine without /v1/auth/config predates SSO, so the API key is the only way in.
 	const methods = METHOD_OPTIONS.filter(({ value }) => {
 		if (isConfigError || !authConfig) return value === 'apiKey';
-		return value === 'oauth' ? authConfig.enabled : authConfig.api_token_enabled;
+		return isMethodEnabled(value, authConfig);
 	});
+	// The remembered choice wins while it is still offered.
 	const activeMethod = methods.find(({ value }) => value === preferredMethod)?.value ?? methods[0]?.value;
 
 	const handleMethodChange = (value: string) => {
 		setPreferredMethod(prefStore.set(METHOD_PREF_KEY, value as AuthMethod));
 	};
+
+	const handleSignedIn = () => navigate(returnTo, { replace: true });
 
 	const handleApiKeySubmit = async ({ apiKey }: LoginDto) => {
 		setApiKeyError(null);
@@ -109,6 +102,16 @@ export const LoginPage: React.FC = () => {
 		}
 	};
 
+	const renderMethod = () => {
+		if (activeMethod === 'local' && authConfig) {
+			return <LocalLoginForm authConfig={authConfig} onSignedIn={handleSignedIn} />;
+		}
+		if (activeMethod === 'oauth') {
+			return <OAuthLoginPanel loading={isRedirecting} error={oauthError} onStart={handleOAuthStart} />;
+		}
+		return <LoginForm loading={isVerifying} error={apiKeyError} onSubmit={handleApiKeySubmit} />;
+	};
+
 	const renderBody = () => {
 		if (isConfigLoading) {
 			return (
@@ -130,58 +133,30 @@ export const LoginPage: React.FC = () => {
 
 		return (
 			<Stack gap="lg">
+				{sessionExpired && (
+					<Alert
+						variant="light"
+						color="blue"
+						icon={<LuClock size={16} aria-hidden />}
+						withCloseButton
+						onClose={() => dispatch(dismissSessionExpired())}
+					>
+						Your session expired, sign in again.
+					</Alert>
+				)}
+
 				{methods.length > 1 && (
 					<SegmentedControl fullWidth data={methods} value={activeMethod} onChange={handleMethodChange} />
 				)}
 
-				{activeMethod === 'oauth' ? (
-					<OAuthLoginPanel loading={isRedirecting} error={oauthError} onStart={handleOAuthStart} />
-				) : (
-					<LoginForm loading={isVerifying} error={apiKeyError} onSubmit={handleApiKeySubmit} />
-				)}
+				{renderMethod()}
 			</Stack>
 		);
 	};
 
 	return (
-		<Flex p={{ base: 'md', md: 'lg' }} gap="lg" className={classes.root}>
-			<Stack flex={1} gap="xl" className={classes.panel}>
-				<Box hiddenFrom="md">
-					<BrandMark size={40} />
-				</Box>
-
-				<Container size={420} w="100%" flex={1} px={0}>
-					<Flex className={classes.formWrapper}>
-						<Box className={classes.form}>
-							<Title order={1} className={classes.title}>
-								Welcome Back
-							</Title>
-							<Text c="dimmed" fz="sm" className={classes.subtitle}>
-								{activeMethod ? SUBTITLE[activeMethod] : 'Sign in to continue'}
-							</Text>
-
-							<Box className={classes.body}>{renderBody()}</Box>
-						</Box>
-					</Flex>
-				</Container>
-
-				<Group justify="space-between" wrap="wrap" gap="xs">
-					<Text fz="xs" c="dimmed">
-						Copyright &copy; 2026{' '}
-						{orgUrl ? (
-							<Anchor fz={'xs'} target="_blank" href={orgUrl}>
-								{copyrightHolder}
-							</Anchor>
-						) : (
-							copyrightHolder
-						)}
-					</Text>
-				</Group>
-			</Stack>
-
-			<Box flex={1} visibleFrom="md">
-				<LoginHero />
-			</Box>
-		</Flex>
+		<AuthLayout title="Welcome Back" subtitle={activeMethod ? SUBTITLE[activeMethod] : 'Sign in to continue'}>
+			{renderBody()}
+		</AuthLayout>
 	);
 };

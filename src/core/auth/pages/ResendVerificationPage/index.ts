@@ -1,0 +1,1 @@
+export { ResendVerificationPage } from './ResendVerificationPage';
