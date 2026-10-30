@@ -127,14 +127,14 @@ export const workflowRunApi = coreApi.injectEndpoints({
 		/** `branchId` delivers to a parallel branch parked on an http input; the parent must be parked on the join. */
 		provideWorkflowRunInput: build.mutation<
 			{ accepted: boolean },
-			{ id: string; payload: unknown; branchId?: string }
+			{ id: string; payload: unknown | FormData; branchId?: string }
 		>({
 			query: ({ id, payload, branchId }) => ({
 				method: 'put',
 				url: `${RESOURCE}/${id}/input`,
 				qParam: branchId ? { filter: { branch_id: { op: '_eq', value: branchId } } } : undefined,
-				// Pre-serialised so a bare string/number payload still goes out as JSON.
-				body: JSON.stringify(payload),
+				// FormData goes out as multipart. Anything else is pre-serialised so a bare string/number still goes out as JSON.
+				body: payload instanceof FormData ? payload : JSON.stringify(payload),
 				head: { 'Idempotency-Key': uuidv4() },
 			}),
 			invalidatesTags: (_result, _error, { id }) => [{ type: apiTagConfig.workflowRun, id }],
