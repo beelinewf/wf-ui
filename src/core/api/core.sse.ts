@@ -1,7 +1,7 @@
 import { config } from '@config/config';
 
 import { isOAuthTokenExpiring, refreshOAuthSession } from '@core/auth/oauth';
-import { clearSession } from '@core/auth/store';
+import { clearSession, expireSession, isLocalSessionExpired } from '@core/auth/store';
 
 import { buildAuthHead, getCoreAuth, type CoreStoreApi } from './core.authHead';
 
@@ -128,6 +128,10 @@ export const openCoreSse = (options: CoreSseOptions): CoreSse => {
 			const url = `${BEELINE_UI_API.replace(/\/+$/, '')}/${options.path.replace(/^\/+/, '')}`;
 
 			if (isOAuthTokenExpiring(getCoreAuth(api))) await refreshOAuthSession(api).catch(() => undefined);
+			if (isLocalSessionExpired(getCoreAuth(api))) {
+				api.dispatch(expireSession());
+				return end({ type: 'unauthorized' });
+			}
 
 			let res = await request(url, signal);
 			if (res.status === 401 && getCoreAuth(api)?.method === 'oauth') {
@@ -139,7 +143,7 @@ export const openCoreSse = (options: CoreSseOptions): CoreSse => {
 			}
 
 			if (res.status === 401) {
-				api.dispatch(clearSession());
+				api.dispatch(getCoreAuth(api)?.method === 'local' ? expireSession() : clearSession());
 				return end({ type: 'unauthorized' });
 			}
 			if (!res.ok || !res.body) {

@@ -11,7 +11,8 @@ export const getCoreAuth = (api: CoreStoreApi) => (api.getState() as { auth?: Au
 
 export const buildAuthHead = (auth?: AuthState): HTTPHeader => {
 	if (!auth?.token) return {};
-	return auth.method === 'oauth'
-		? { [AUTH_BEARER_HEADER]: `Bearer ${auth.token}` }
-		: { [AUTH_TOKEN_HEADER]: auth.token };
+	// SSO and local logins both carry a JWT; only the API key travels in its own header.
+	return auth.method === 'apiKey'
+		? { [AUTH_TOKEN_HEADER]: auth.token }
+		: { [AUTH_BEARER_HEADER]: `Bearer ${auth.token}` };
 };

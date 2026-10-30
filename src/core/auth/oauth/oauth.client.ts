@@ -2,7 +2,7 @@ import { AUTH_CALLBACK_PATH, AUTH_LOGIN_PATH, OAUTH_EXTRA_SCOPES } from '@core/a
 import type { AuthConfig } from '@core/auth/types/AuthConfig';
 import type { OAuthTokens } from '@core/auth/types/OAuthTokens';
 
-import { loadAuthConfig, loadOidcDiscovery } from './oauth.config';
+import { loadOidcConfig, loadOidcDiscovery, requireOidcConfig } from './oauth.config';
 import { createCodeChallenge, decodeJwtPayload, randomToken } from './oauth.encoding';
 import { OAuthError } from './oauth.error';
 import { saveOAuthTransaction, takeOAuthTransaction } from './oauth.transaction';
@@ -51,7 +51,8 @@ const requestTokens = async (tokenUrl: string, params: Record<string, string>): 
 	};
 };
 
-export const startOAuthLogin = async (cfg: AuthConfig, returnTo: string): Promise<string> => {
+export const startOAuthLogin = async (authConfig: AuthConfig, returnTo: string): Promise<string> => {
+	const cfg = requireOidcConfig(authConfig);
 	const state = randomToken();
 	const nonce = randomToken();
 	const codeVerifier = randomToken();
@@ -92,7 +93,7 @@ const runOAuthCallback = async (params: URLSearchParams): Promise<OAuthCallbackR
 	const code = params.get('code');
 	if (!code) throw new OAuthError(0, 'missing_code', 'The provider did not return an authorization code.');
 
-	const cfg = await loadAuthConfig();
+	const cfg = await loadOidcConfig();
 	const tokens = await requestTokens(cfg.token_url, {
 		grant_type: 'authorization_code',
 		code,
@@ -124,7 +125,7 @@ export const completeOAuthLogin = (params: URLSearchParams): Promise<OAuthCallba
 };
 
 export const refreshOAuthTokens = async (refreshToken: string): Promise<OAuthTokens> => {
-	const cfg = await loadAuthConfig();
+	const cfg = await loadOidcConfig();
 	return requestTokens(cfg.token_url, {
 		grant_type: 'refresh_token',
 		refresh_token: refreshToken,
@@ -135,7 +136,7 @@ export const refreshOAuthTokens = async (refreshToken: string): Promise<OAuthTok
 
 // Returns null when the provider has no end-session endpoint, in which case logout stays local.
 export const buildOAuthLogoutUrl = async (idToken: string | null): Promise<string | null> => {
-	const [cfg, discovery] = await Promise.all([loadAuthConfig(), loadOidcDiscovery()]);
+	const [cfg, discovery] = await Promise.all([loadOidcConfig(), loadOidcDiscovery()]);
 	if (!discovery.end_session_endpoint) return null;
 
 	const url = new URL(discovery.end_session_endpoint);
