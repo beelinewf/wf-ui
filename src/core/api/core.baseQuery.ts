@@ -4,7 +4,7 @@ import { apiTagConfig } from '@config/apiTag.config';
 import { config } from '@config/config';
 
 import { isOAuthTokenExpiring, refreshOAuthSession } from '@core/auth/oauth';
-import { clearSession } from '@core/auth/store';
+import { clearSession, expireSession, isLocalSessionExpired } from '@core/auth/store';
 import { Http } from '@core/http';
 
 import { HTTPError } from '@common/exception/HTTPError';
@@ -30,6 +30,8 @@ export interface CoreQueryError {
 	data: string;
 	explain: string;
 	message: string;
+	/** Whole seconds a 429 asks the caller to wait. */
+	retryAfter?: number;
 }
 
 export interface CoreQueryExtraOptions {
@@ -55,7 +57,13 @@ export const resetCoreHttp = () => {
 
 const toCoreQueryError = (err: unknown): CoreQueryError => {
 	if (err instanceof HTTPError) {
-		return { code: err.code, data: err.data, explain: err.explain, message: err.message };
+		return {
+			code: err.code,
+			data: err.data,
+			explain: err.explain,
+			message: err.message,
+			retryAfter: err.retryAfter,
+		};
 	}
 
 	return {
@@ -77,6 +85,11 @@ export const coreBaseQuery: BaseQueryFn<
 
 	try {
 		const http = await getHttp();
+
+		// A local token has no refresh, so a request past its expiry would only come back 401.
+		if (!anonymous && isLocalSessionExpired(getCoreAuth(api))) {
+			throw new HTTPError(401, undefined, 'Session expired', 'Your session expired, sign in again.');
+		}
 
 		// A failed early refresh is not fatal here: the request still goes out and the 401 path below decides.
 		if (!anonymous && isOAuthTokenExpiring(getCoreAuth(api))) await refreshOAuthSession(api).catch(() => undefined);
@@ -105,7 +118,10 @@ export const coreBaseQuery: BaseQueryFn<
 		return { data: res.data, meta: { code: res.code, explain: res.explain, param: res.param } };
 	} catch (err) {
 		const error = toCoreQueryError(err);
-		if (error.code === 401 && !anonymous) api.dispatch(clearSession());
+		if (error.code === 401 && !anonymous) {
+			// A local session ending is not a sign-out, so the login page explains it; other methods just clear.
+			api.dispatch(getCoreAuth(api)?.method === 'local' ? expireSession() : clearSession());
+		}
 		// Roles can change mid-session, so a denial refreshes /auth/me and the gates follow it.
 		if (error.code === 403 && !anonymous) api.dispatch(coreApi.util.invalidateTags([{ type: apiTagConfig.me }]));
 

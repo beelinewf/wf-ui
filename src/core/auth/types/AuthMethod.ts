@@ -1,1 +1,1 @@
-export type AuthMethod = 'oauth' | 'apiKey';
+export type AuthMethod = 'local' | 'oauth' | 'apiKey';

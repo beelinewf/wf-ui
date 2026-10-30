@@ -1,6 +1,6 @@
 import { config } from '@config/config';
 
-import type { AuthConfig } from '@core/auth/types/AuthConfig';
+import type { AuthConfig, OidcAuthConfig } from '@core/auth/types/AuthConfig';
 
 import { OAuthError } from './oauth.error';
 
@@ -33,8 +33,26 @@ export const loadAuthConfig = cached(async () => {
 	return fetchJson<AuthConfig>(`${BEELINE_UI_API.replace(/\/+$/, '')}/v1/auth/config`);
 });
 
+// A deployment without SSO serves the config with the OIDC fields absent or empty.
+export const requireOidcConfig = (cfg: AuthConfig): OidcAuthConfig => {
+	if (!cfg.enabled || !cfg.issuer || !cfg.client_id || !cfg.authorization_url || !cfg.token_url) {
+		throw new OAuthError(0, 'sso_unavailable', 'SSO is not configured on this engine.');
+	}
+	return {
+		...cfg,
+		issuer: cfg.issuer,
+		client_id: cfg.client_id,
+		authorization_url: cfg.authorization_url,
+		token_url: cfg.token_url,
+		scopes: cfg.scopes ?? [],
+	};
+};
+
+/** The engine's config, rejected when it carries no OIDC provider. */
+export const loadOidcConfig = async () => requireOidcConfig(await loadAuthConfig());
+
 // /v1/auth/config has no logout endpoint, so it is read from the provider's discovery document.
 export const loadOidcDiscovery = cached(async () => {
-	const { issuer } = await loadAuthConfig();
+	const { issuer } = await loadOidcConfig();
 	return fetchJson<OidcDiscovery>(`${issuer.replace(/\/+$/, '')}/.well-known/openid-configuration`);
 });
