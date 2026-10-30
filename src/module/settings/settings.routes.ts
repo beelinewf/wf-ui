@@ -1,6 +1,8 @@
 import { Navigate, type RouteObject } from 'react-router';
 
 import { MyAccessPage } from './pages/MyAccessPage';
+import { MyPasswordPage } from './pages/MyPasswordPage';
+import { MyProfilePage } from './pages/MyProfilePage';
 import { PreferencePage } from './pages/PreferencePage';
 import { SettingsLayoutPage } from './pages/SettingsLayoutPage';
 
@@ -12,5 +14,8 @@ export const settingsRoutes: RouteObject = {
 		{ path: 'preference', Component: PreferencePage },
 		// Everyone may see what they hold, so this page has no permission gate.
 		{ path: 'access', Component: MyAccessPage },
+		// Local accounts only; each page sends anyone else back to My access.
+		{ path: 'profile', Component: MyProfilePage },
+		{ path: 'password', Component: MyPasswordPage },
 	],
 };

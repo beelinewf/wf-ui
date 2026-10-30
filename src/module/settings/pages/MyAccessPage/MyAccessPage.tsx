@@ -4,7 +4,7 @@ import { Alert, Avatar, Badge, Button, Divider, Group, Paper, Skeleton, Stack, T
 import { LuCircleAlert, LuInfo, LuShieldAlert } from 'react-icons/lu';
 
 import { useGetMeQuery } from '@core/auth/hooks';
-import { selectIsAnonymous } from '@core/auth/store';
+import { selectAuthMethod, selectIsAnonymous } from '@core/auth/store';
 import { useCoreSelector } from '@core/store';
 
 import { PermissionList } from '@module/role/components/PermissionList';
@@ -13,6 +13,8 @@ export const MyAccessPage: React.FC = () => {
 	const isAnonymous = useCoreSelector(selectIsAnonymous);
 	// Shares the cache entry the authorization gates read, so this is the same identity they act on.
 	const { data: me, isError, isFetching, refetch } = useGetMeQuery(undefined, { skip: isAnonymous });
+	// Local accounts can only sign in over the email login, so the session method says exactly who can self-edit.
+	const isLocal = useCoreSelector(selectAuthMethod) === 'local';
 
 	const renderBody = () => {
 		if (isAnonymous) {
@@ -85,8 +87,9 @@ export const MyAccessPage: React.FC = () => {
 						</Group>
 					) : (
 						<Text fz="sm" c="dimmed">
-							Your sign-in carried no role, so gated pages stay closed. Ask an administrator to assign one
-							in the identity provider.
+							{isLocal
+								? 'Your account has no role, so gated pages stay closed. Ask an administrator to assign one.'
+								: 'Your sign-in carried no role, so gated pages stay closed. Ask an administrator to assign one in the identity provider.'}
 						</Text>
 					)}
 				</div>
@@ -105,11 +108,17 @@ export const MyAccessPage: React.FC = () => {
 						My access
 					</Title>
 					<Text c="dimmed" fz="sm">
-						Who the engine sees you as and what your roles let you do. Roles are managed in the identity
-						provider.
+						{isLocal
+							? 'Who the engine sees you as and what your roles let you do. An administrator assigns your roles.'
+							: 'Who the engine sees you as and what your roles let you do.'}
 					</Text>
 				</div>
 				{renderBody()}
+				{me && !isLocal && !me.service && (
+					<Text fz="xs" c="dimmed">
+						Your profile and roles are managed by your identity provider.
+					</Text>
+				)}
 			</Stack>
 		</Paper>
 	);

@@ -4,6 +4,8 @@ import { Paper, Stack, Text } from '@mantine/core';
 import { NavLink } from 'react-router';
 
 import { useAuthorization } from '@core/auth/authorization';
+import { selectAuthMethod } from '@core/auth/store';
+import { useCoreSelector } from '@core/store';
 
 import { SETTINGS_MENU } from '@module/settings/constant';
 
@@ -11,7 +13,10 @@ import classes from './SettingsMenu.module.scss';
 
 export const SettingsMenu: React.FC = () => {
 	const { authorization } = useAuthorization();
-	const items = SETTINGS_MENU.filter((item) => !item.permission || authorization.evaluate(item.permission));
+	const isLocal = useCoreSelector(selectAuthMethod) === 'local';
+	const items = SETTINGS_MENU.filter(
+		(item) => (!item.permission || authorization.evaluate(item.permission)) && (!item.localOnly || isLocal),
+	);
 
 	return (
 		<Paper component="nav" aria-label="Settings" withBorder radius="md" p={6}>
