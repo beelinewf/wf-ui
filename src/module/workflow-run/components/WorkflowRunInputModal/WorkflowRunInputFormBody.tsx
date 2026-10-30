@@ -7,9 +7,9 @@ import type { JsonSchema } from '@common/types/JsonSchema';
 
 import { FormRenderer } from '@module/form-engine/components/FormRenderer';
 import { useFormEngine } from '@module/form-engine/hooks';
-import { validateFormPayload } from '@module/form-engine/utils';
+import { buildMultipartBody, hasFileFields, validateFormPayload } from '@module/form-engine/utils';
 
-import { parseRawPayload } from './WorkflowRunInputModal.utils';
+import { inputBodyTypes, isPlainObject, parseRawPayload } from './WorkflowRunInputModal.utils';
 import { WorkflowRunInputPayloadField } from './WorkflowRunInputRawBody';
 
 type InputTab = 'form' | 'raw';
@@ -18,23 +18,32 @@ interface WorkflowRunInputFormBodyProps {
 	schema: JsonSchema;
 	ui: unknown;
 	context?: Record<string, unknown>;
+	/** `pending_input.accept`: the bodies the node takes. */
+	accept?: string[];
 	onCancel: () => void;
 	/** Resolves once the engine accepted the payload; a rejection's message is shown. */
-	onSubmit: (payload: unknown) => Promise<void>;
+	onSubmit: (payload: unknown | FormData) => Promise<void>;
 }
 
 /**
  * Delivery through the input's form, with raw JSON as a second tab. Both are checked against the form, since the
- * engine no longer does; raw JSON can still be sent past a failed check on purpose.
+ * engine no longer does; raw JSON can still be sent past a failed check on purpose. A form with file fields goes out
+ * as multipart and has no raw tab; so does any payload to a node that takes multipart only.
  */
 export const WorkflowRunInputFormBody: React.FC<WorkflowRunInputFormBodyProps> = ({
 	schema,
 	ui,
 	context,
+	accept,
 	onCancel,
 	onSubmit,
 }) => {
 	const engine = useFormEngine({ schema, ui, context });
+	const takes = inputBodyTypes(accept);
+	const files = hasFileFields(engine.model);
+	// Files can't go out as JSON, so a node that only takes JSON can't get this form at all.
+	const blocked = files && !takes.multipart;
+	const multipart = files || !takes.json;
 	const [tab, setTab] = useState<InputTab>('form');
 	const [raw, setRaw] = useState('');
 	const [rawIssues, setRawIssues] = useState<string[]>([]);
@@ -45,7 +54,7 @@ export const WorkflowRunInputFormBody: React.FC<WorkflowRunInputFormBodyProps> =
 		setError(null);
 		setSubmitting(true);
 		try {
-			await onSubmit(payload);
+			await onSubmit(multipart && isPlainObject(payload) ? buildMultipartBody(payload) : payload);
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Failed to deliver input');
 		} finally {
@@ -73,6 +82,10 @@ export const WorkflowRunInputFormBody: React.FC<WorkflowRunInputFormBodyProps> =
 			setError('Payload must be valid JSON');
 			return;
 		}
+		if (multipart && !isPlainObject(parsed.payload)) {
+			setError('This input only takes multipart, so the payload must be a JSON object: each key becomes a part');
+			return;
+		}
 		if (!force) {
 			const result = validateFormPayload(engine.model, parsed.payload);
 			if (!result.success) {
@@ -86,14 +99,41 @@ export const WorkflowRunInputFormBody: React.FC<WorkflowRunInputFormBodyProps> =
 		await deliver(parsed.payload);
 	};
 
+	if (blocked) {
+		return (
+			<Stack gap="md">
+				<Alert color="red" variant="light" icon={<LuCircleAlert size={16} />} p="sm">
+					<Text fz="xs">
+						This form has file fields, but the input node only takes JSON, so it can't be delivered. Add
+						multipart to the node's accepted bodies, with a storage bucket.
+					</Text>
+				</Alert>
+				<Group justify="flex-end">
+					<Button variant="default" onClick={onCancel}>
+						Close
+					</Button>
+				</Group>
+			</Stack>
+		);
+	}
+
 	return (
 		<Stack gap="md">
-			<Tabs value={tab} onChange={(value) => value && switchTab(value as InputTab)}>
-				<Tabs.List>
-					<Tabs.Tab value="form">Form</Tabs.Tab>
-					<Tabs.Tab value="raw">Raw JSON</Tabs.Tab>
-				</Tabs.List>
-			</Tabs>
+			{/* Files can't be written as JSON, so a form with them has no raw tab. */}
+			{!files && (
+				<Tabs value={tab} onChange={(value) => value && switchTab(value as InputTab)}>
+					<Tabs.List>
+						<Tabs.Tab value="form">Form</Tabs.Tab>
+						<Tabs.Tab value="raw">Raw JSON</Tabs.Tab>
+					</Tabs.List>
+				</Tabs>
+			)}
+
+			{multipart && tab === 'raw' && (
+				<Text fz="xs" c="dimmed">
+					Sent as multipart: each key is a part, strings as they are and other values as JSON.
+				</Text>
+			)}
 
 			{tab === 'form' ? (
 				<FormRenderer engine={engine} disabled={submitting} />

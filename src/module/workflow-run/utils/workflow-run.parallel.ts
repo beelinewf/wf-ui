@@ -246,6 +246,7 @@ export const findBranchInputs = (
 					channel: node.channel,
 					output_property: node.output_property?.trim() || node.id,
 					form_id: node.form_id,
+					accept: node.accept,
 				},
 			});
 		}
@@ -263,5 +264,9 @@ export const describeInputError = (error: unknown, branch: boolean): string => {
 	if (branch && code === 409) {
 		return `The run isn't parked on the parallel join any more, or this branch isn't waiting on an HTTP input.${detail ? ` (${detail})` : ''}`;
 	}
+	if (code === 413) {
+		return `The upload is over a size or count limit (per file, in total, or the number of files).${detail ? ` (${detail})` : ''}`;
+	}
+	if (code === 415) return `This input doesn't take this kind of body.${detail ? ` (${detail})` : ''}`;
 	return detail || 'Failed to deliver input';
 };

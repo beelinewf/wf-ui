@@ -25,8 +25,8 @@ interface WorkflowRunInputModalProps {
 	/** Preselects a branch; defaults to the first parked one. */
 	branchId?: string | null;
 	onClose: () => void;
-	/** Resolves once the engine accepted the payload; a rejection keeps the modal open. */
-	onSubmit: (payload: unknown, branchId?: string) => Promise<void>;
+	/** Resolves once the engine accepted the payload; a rejection keeps the modal open. FormData goes out as multipart. */
+	onSubmit: (payload: unknown | FormData, branchId?: string) => Promise<void>;
 }
 
 /** Which form the input renders, or why it falls back to raw JSON. */
@@ -105,7 +105,7 @@ export const WorkflowRunInputModal: React.FC<WorkflowRunInputModalProps> = ({
 		onClose();
 	};
 
-	const deliver = async (payload: unknown) => {
+	const deliver = async (payload: unknown | FormData) => {
 		await onSubmit(payload, branch?.branch.id);
 		close();
 	};
@@ -128,12 +128,13 @@ export const WorkflowRunInputModal: React.FC<WorkflowRunInputModalProps> = ({
 					schema={resolved.schema}
 					ui={resolved.ui}
 					context={context}
+					accept={target?.accept}
 					onCancel={close}
 					onSubmit={deliver}
 				/>
 			);
 		}
-		return <WorkflowRunInputRawBody key={bodyKey} onCancel={close} onSubmit={deliver} />;
+		return <WorkflowRunInputRawBody key={bodyKey} accept={target?.accept} onCancel={close} onSubmit={deliver} />;
 	};
 
 	return (
@@ -174,9 +175,16 @@ export const WorkflowRunInputModal: React.FC<WorkflowRunInputModalProps> = ({
 								context key <strong>{target.output_property || target.node_id}</strong>.
 							</Text>
 						)}
-						<Badge size="xs" variant="light" mt={6}>
-							channel {target.channel}
-						</Badge>
+						<Group gap={4} mt={6}>
+							<Badge size="xs" variant="light">
+								channel {target.channel}
+							</Badge>
+							{target.accept?.includes('multipart/form-data') && (
+								<Badge size="xs" variant="light" color="grape">
+									multipart
+								</Badge>
+							)}
+						</Group>
 					</Alert>
 
 					<FormSourceNote resolved={resolved} />
