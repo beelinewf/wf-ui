@@ -3,7 +3,7 @@ import { createElement } from 'react';
 import { NuqsAdapter } from 'nuqs/adapters/react-router/v8';
 import { createBrowserRouter, Navigate, Outlet } from 'react-router';
 
-import { authRoutes } from '@core/auth/auth.routes';
+import { authRoutes, verifyEmailRoute } from '@core/auth/auth.routes';
 import { RequireAuth } from '@core/auth/components/AuthGuard';
 
 import { NotFound } from '@common/component/NotFound';
@@ -30,6 +30,7 @@ export const routesConfig = createBrowserRouter([
 				Component: () => Navigate({ to: 'auth' }),
 			},
 			authRoutes,
+			verifyEmailRoute,
 			{
 				path: 'app',
 				Component: RequireAuth,
