@@ -63,10 +63,16 @@ export const FormBuilderDnd: React.FC<FormBuilderDndProps> = ({ builder, childre
 		const own = new Set(
 			self && hasChildren(self.field) ? walkDraft(self.field.children).map((item) => item.field.id) : [],
 		);
+		// A file field only goes top level, so groups and repeaters and the fields inside them aren't targets.
+		const topLevelOnly = dragging === 'file' || (self?.field.kind === 'input' && self.field.widget === 'file');
 		const allowed = args.droppableContainers.filter((droppable) => {
 			const id = String(droppable.id);
 			if (id === activeId || own.has(id)) return false;
 			const container = parseContainerId(id);
+			if (topLevelOnly) {
+				const target = container ?? (droppable.data.current?.container as FormBuilderContainer | undefined);
+				if (target?.type === 'children') return false;
+			}
 			return !(container?.type === 'children' && (container.id === activeId || own.has(container.id)));
 		});
 		const within = pointerWithin({ ...args, droppableContainers: allowed });
@@ -97,6 +103,7 @@ export const FormBuilderDnd: React.FC<FormBuilderDndProps> = ({ builder, childre
 		const asContainer = parseContainerId(overKey);
 		const container = asContainer ?? (over.data.current?.container as FormBuilderContainer | undefined);
 		if (!container) return;
+		if (widget === 'file' && container.type === 'children') return;
 		const list = containerFields(draft, container);
 		// Onto a container: at its end. Onto a field: in its place, pushing it down.
 		const index = Math.max(0, asContainer ? list.length : list.findIndex((field) => field.id === overKey));

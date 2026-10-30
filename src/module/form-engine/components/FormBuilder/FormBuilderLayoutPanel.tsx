@@ -2,6 +2,7 @@ import React from 'react';
 
 import {
 	ActionIcon,
+	Alert,
 	Button,
 	Card,
 	Fieldset,
@@ -13,14 +14,15 @@ import {
 	Text,
 	TextInput,
 } from '@mantine/core';
-import { LuPlus, LuTrash2 } from 'react-icons/lu';
+import { LuInfo, LuPlus, LuTriangleAlert, LuTrash2 } from 'react-icons/lu';
 
 import { FORM_SECTION_STYLE_LABELS } from '@module/form-engine/constant';
 import type { FormBuilderFormTab } from '@module/form-engine/types/FormBuilderInspectorTab';
 import type { FormBuilderState } from '@module/form-engine/types/FormBuilderState';
+import type { FormContentType } from '@module/form-engine/types/FormContentType';
 import type { FormDraft } from '@module/form-engine/types/FormDraft';
 import type { FormSectionStyle } from '@module/form-engine/types/FormSectionStyle';
-import { draftFieldId } from '@module/form-engine/utils';
+import { draftContentTypeWarning, draftFieldId } from '@module/form-engine/utils';
 
 import { SectionLabel } from './FormBuilderSectionLabel';
 
@@ -34,6 +36,8 @@ interface FormBuilderLayoutPanelProps {
 export const FormBuilderLayoutPanel: React.FC<FormBuilderLayoutPanelProps> = ({ builder, tab, readOnly }) => {
 	const { draft } = builder;
 	const setSections = (sections: FormDraft['sections']) => builder.update((current) => ({ ...current, sections }));
+	const multipart = draft.contentType === 'multipart/form-data';
+	const mismatch = draftContentTypeWarning(draft);
 
 	return (
 		<Fieldset variant="unstyled" p={0} disabled={readOnly}>
@@ -58,6 +62,38 @@ export const FormBuilderLayoutPanel: React.FC<FormBuilderLayoutPanelProps> = ({ 
 								builder.update((current) => ({ ...current, strict }));
 							}}
 						/>
+						<Stack gap={4}>
+							<SectionLabel>Content type</SectionLabel>
+							<SegmentedControl
+								size="xs"
+								fullWidth
+								data={[
+									{ value: 'application/json', label: 'JSON' },
+									{ value: 'multipart/form-data', label: 'Multipart' },
+								]}
+								value={draft.contentType}
+								onChange={(next) =>
+									builder.update((current) => ({ ...current, contentType: next as FormContentType }))
+								}
+							/>
+							<Text fz="xs" c="dimmed">
+								How the payload is delivered. An input node using this form has to accept it.
+							</Text>
+						</Stack>
+						{mismatch && (
+							<Alert color="yellow" variant="light" icon={<LuTriangleAlert size={16} />} p="xs">
+								<Text fz="xs">{mismatch}</Text>
+							</Alert>
+						)}
+						{multipart && (
+							<Alert color="blue" variant="light" icon={<LuInfo size={16} />} p="xs">
+								<Text fz="xs">
+									Multipart parts are flat: every key arrives in the context as a list. Text stays
+									text, other values arrive as JSON strings, and files as references to object
+									storage.
+								</Text>
+							</Alert>
+						)}
 					</>
 				)}
 
