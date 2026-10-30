@@ -38,11 +38,13 @@ export class Http {
 
 		if (axios.isAxiosError<Partial<HTTPResponse<string>> & { title?: string; detail?: string }>(err)) {
 			const res = err.response;
+			const retryAfter = Number.parseInt(String(res?.headers?.['retry-after'] ?? ''), 10);
 			return new HTTPError(
 				res?.status,
 				res?.data?.data,
 				res?.data?.explain ?? res?.data?.title ?? err.code,
 				res?.data?.message ?? res?.data?.detail ?? err.message,
+				Number.isFinite(retryAfter) && retryAfter >= 0 ? retryAfter : undefined,
 			);
 		}
 

@@ -16,3 +16,4 @@ export {
 	type CoreSseFrame,
 	type CoreSseOptions,
 } from './core.sse';
+export { queryErrorCode, queryErrorMessage, queryRetryAfter, RATE_LIMIT_FALLBACK_SECONDS } from './core.error';
