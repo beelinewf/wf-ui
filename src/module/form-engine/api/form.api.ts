@@ -41,7 +41,7 @@ export const formApi = coreApi.injectEndpoints({
 			invalidatesTags: [{ type: apiTagConfig.form, id: API_TAG_LIST_ID }],
 		}),
 
-		/** Full overwrite: an omitted `ui` clears the stored one. Allowed while the form is in use. */
+		/** Full overwrite: an omitted `ui` clears the stored one and `content_type` resets. Allowed while the form is in use. */
 		updateForm: build.mutation<Form, FormPayload & { id: string }>({
 			query: ({ id, ...body }) => ({ method: 'put', url: formUrl(id), body }),
 			invalidatesTags: (_result, _error, { id }) => [

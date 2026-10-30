@@ -47,6 +47,7 @@ const widgetSchema = z.enum([
 	'group',
 	'repeater',
 	'remote-select',
+	'file',
 ]);
 
 const fieldUiSchema = z.object({

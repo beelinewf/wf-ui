@@ -72,7 +72,7 @@ const FormBuilderEditor: React.FC<FormBuilderEditorProps> = ({ form, initial, in
 			panel.setCollapsed('bottom', false);
 			return;
 		}
-		const payload = { name: builder.draft.name.trim(), ...builder.output };
+		const payload = { name: builder.draft.name.trim(), content_type: builder.draft.contentType, ...builder.output };
 
 		try {
 			if (form) {
@@ -224,7 +224,12 @@ export const FormBuilderPage: React.FC = () => {
 	}
 
 	const parsed = source.data
-		? draftFromForm(from ? `Copy of ${source.data.name}` : source.data.name, source.data.schema, source.data.ui)
+		? draftFromForm(
+				from ? `Copy of ${source.data.name}` : source.data.name,
+				source.data.schema,
+				source.data.ui,
+				source.data.content_type,
+			)
 		: { draft: emptyDraft(), warnings: [] };
 
 	return (

@@ -9,6 +9,7 @@ import {
 	buildFormModel,
 	containerFields,
 	containerOf,
+	draftContentTypeWarning,
 	draftFromForm,
 	draftIssues,
 	findDraftField,
@@ -37,7 +38,8 @@ const placeField = (
 
 const pretty = (value: unknown) => JSON.stringify(value ?? {}, null, 2);
 
-const snapshotOf = (draft: FormDraft) => JSON.stringify({ name: draft.name.trim(), ...formFromDraft(draft) });
+const snapshotOf = (draft: FormDraft) =>
+	JSON.stringify({ name: draft.name.trim(), contentType: draft.contentType, ...formFromDraft(draft) });
 
 const parseObject = (text: string, label: string, optional: boolean): Record<string, unknown> | undefined => {
 	if (optional && !text.trim()) return undefined;
@@ -63,6 +65,7 @@ export const useFormBuilder = (initial: FormDraft, initialWarnings: string[] = [
 	const output = useMemo(() => formFromDraft(draft), [draft]);
 	const model = useMemo(() => buildFormModel(output.schema, output.ui), [output]);
 	const issues = draftIssues(draft);
+	const contentTypeWarning = draftContentTypeWarning(draft);
 
 	const setTab = (next: FormBuilderTab) => {
 		// An invalid JSON edit can't become a draft, so it has to be fixed before leaving.
@@ -80,7 +83,7 @@ export const useFormBuilder = (initial: FormDraft, initialWarnings: string[] = [
 		try {
 			const schema = parseObject(next.schema, 'Schema', false)!;
 			const ui = parseObject(next.ui, 'UI', true);
-			const parsed = draftFromForm(draft.name, schema, ui);
+			const parsed = draftFromForm(draft.name, schema, ui, draft.contentType);
 			setDraft(parsed.draft);
 			setParseWarnings(parsed.warnings);
 			setSelectedId(null);
@@ -97,7 +100,16 @@ export const useFormBuilder = (initial: FormDraft, initialWarnings: string[] = [
 	const add = (widget: FormWidget) => {
 		const field = newDraftField(widget, widget.replace('-', '_'));
 		setDraft((current) => {
-			const location = selectedId ? findDraftField(current.fields, selectedId) : null;
+			let location = selectedId ? findDraftField(current.fields, selectedId) : null;
+			// A file field only goes top level: next to the top-level field the selection sits in.
+			if (widget === 'file') {
+				while (location?.parent) location = findDraftField(current.fields, location.parent.id);
+				if (location && hasChildren(location.field)) {
+					const container = containerOf(current, location.field.id) ?? { type: 'ungrouped' as const };
+					const list = containerFields(current, container);
+					return placeField(current, field, container, list.indexOf(location.field) + 1);
+				}
+			}
 			const lastSection = current.sections.at(-1);
 			const container: FormBuilderContainer =
 				location && hasChildren(location.field)
@@ -144,7 +156,11 @@ export const useFormBuilder = (initial: FormDraft, initialWarnings: string[] = [
 		model,
 		// Fields kept as JSON are listed once from the parse; the model adds `ui` problems of the current output.
 		warnings: [
-			...new Set([...parseWarnings, ...model.warnings.filter((item) => !item.includes('edited as JSON'))]),
+			...new Set([
+				...parseWarnings,
+				...model.warnings.filter((item) => !item.includes('edited as JSON')),
+				...(contentTypeWarning ? [contentTypeWarning] : []),
+			]),
 		],
 		issues,
 		dirty: snapshotOf(draft) !== baseline,

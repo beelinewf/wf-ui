@@ -8,6 +8,7 @@ import type { FormModel } from '@module/form-engine/types/FormModel';
 
 import { isFieldVisible } from './form.condition';
 import { formIssuesToErrors } from './form.error';
+import { formatFileSize, matchesMimeType } from './form.file';
 import { joinValuePath } from './form.model';
 
 type Values = Record<string, unknown>;
@@ -103,6 +104,28 @@ const arrayRules = <T extends z.ZodType<unknown[]>>(base: T, schema: JsonSchema)
 		}),
 	);
 
+/** One picked file, checked against the field's size and type rules as the engine checks them. */
+const fileSchema = (field: FormFieldModel) => {
+	const { accept = [], maxBytes } = field.file ?? {};
+	return z
+		.custom<File>((input) => input instanceof File, {
+			error: (issue) => (issue.input === undefined || issue.input === null ? 'Required' : 'Choose a file'),
+		})
+		.check(
+			z.superRefine((file: File, ctx) => {
+				if (maxBytes !== undefined && file.size > maxBytes) {
+					ctx.addIssue({ code: 'custom', message: `${file.name} is over ${formatFileSize(maxBytes)}` });
+				}
+				if (accept.length && !matchesMimeType(file.type, accept)) {
+					ctx.addIssue({
+						code: 'custom',
+						message: `${file.name} isn't an allowed type (${accept.join(', ')})`,
+					});
+				}
+			}),
+		);
+};
+
 /** A remote option's value, by the schema type it's stored as. */
 const remoteValueSchema = (type: unknown, message: string): z.ZodType => {
 	const error = required(message);
@@ -161,6 +184,10 @@ const fieldSchema = (field: FormFieldModel, value: unknown, path: string, root: 
 		case 'select':
 		case 'radio':
 			return enumSchema(schema.enum ?? []);
+		case 'file':
+			return field.file?.multiple
+				? arrayRules(z.array(fileSchema(field), { error: required('Add at least one file') }), schema)
+				: fileSchema(field);
 		case 'json':
 			return z.unknown().refine((input) => input !== undefined, 'Required');
 		case 'switch':

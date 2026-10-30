@@ -1,0 +1,19 @@
+.dropzone {
+	border-style: dashed;
+
+	&[data-error] {
+		border-color: var(--mantine-color-error);
+	}
+}
+
+.file {
+	padding: 4px var(--mantine-spacing-xs);
+	border: 1px solid var(--mantine-color-default-border);
+	border-radius: var(--mantine-radius-sm);
+	background: var(--mantine-color-default);
+}
+
+.icon {
+	flex-shrink: 0;
+	color: var(--mantine-color-dimmed);
+}

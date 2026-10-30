@@ -23,6 +23,10 @@ export interface FormDraftConstraints {
 	minItems?: number;
 	maxItems?: number;
 	uniqueItems?: boolean;
+	/** File fields: `allowed_mime_types`. */
+	allowedMimeTypes?: string[];
+	/** File fields: `max_file_bytes`, per file. */
+	maxFileBytes?: number;
 }
 
 /** A field the builder fully models. */
@@ -44,6 +48,8 @@ export interface FormDraftInputField {
 	visibleWhen?: FormCondition;
 	/** Only for `group` and `repeater`; unset is `default`. */
 	groupStyle?: FormGroupStyle;
+	/** Only for `file`: a list of files rather than one. */
+	multiple?: boolean;
 	/** Remote-select request; `multiple` there makes the value a list. */
 	options?: FormRemoteOptions;
 	default?: unknown;

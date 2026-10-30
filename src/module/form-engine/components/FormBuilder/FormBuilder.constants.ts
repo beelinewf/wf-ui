@@ -9,6 +9,7 @@ import {
 	LuHash,
 	LuListChecks,
 	LuListPlus,
+	LuPaperclip,
 	LuSquareCheck,
 	LuSquareChevronDown,
 	LuTags,
@@ -39,6 +40,7 @@ export const FORM_WIDGET_GROUPS: { id: string; title: string; color: string; wid
 	},
 	{ id: 'date', title: 'Date and time', color: 'teal', widgets: ['date', 'datetime', 'time'] },
 	{ id: 'structure', title: 'Structure', color: 'orange', widgets: ['group', 'repeater'] },
+	{ id: 'files', title: 'Files', color: 'grape', widgets: ['file'] },
 ];
 
 const WIDGET_DETAILS: Record<FormWidget, { icon: IconType; description: string }> = {
@@ -57,6 +59,7 @@ const WIDGET_DETAILS: Record<FormWidget, { icon: IconType; description: string }
 	time: { icon: LuClock, description: 'Time of day' },
 	group: { icon: LuBraces, description: 'Nested object of fields' },
 	repeater: { icon: LuListPlus, description: 'List of repeated items' },
+	file: { icon: LuPaperclip, description: 'Upload one or more files' },
 };
 
 export const FORM_WIDGET_META = Object.fromEntries(

@@ -3,6 +3,7 @@ import type { JsonSchema } from '@common/types/JsonSchema';
 import { resolveSchema, schemaTypes } from '@module/form-engine/components/SchemaForm';
 import { FORM_ITEM_SEGMENT, FORM_UI_VERSION } from '@module/form-engine/constant';
 import { parseFormUi } from '@module/form-engine/dto';
+import type { FormContentType } from '@module/form-engine/types/FormContentType';
 import type { FormDraft } from '@module/form-engine/types/FormDraft';
 import type {
 	FormDraftConstraints,
@@ -14,7 +15,14 @@ import type { FormFieldUi } from '@module/form-engine/types/FormFieldUi';
 import type { FormUi } from '@module/form-engine/types/FormUi';
 import type { FormWidget } from '@module/form-engine/types/FormWidget';
 
-import { compatibleWidgets, defaultWidget, orderedKeys, unsupportedKeywords } from './form.model';
+import {
+	FORM_FILE_FORMAT,
+	compatibleWidgets,
+	defaultWidget,
+	fileRules,
+	orderedKeys,
+	unsupportedKeywords,
+} from './form.model';
 
 let idCounter = 0;
 
@@ -51,6 +59,9 @@ const MODELLED_KEYWORDS = new Set<string>([
 ]);
 
 const ITEM_KEYWORDS = new Set(['type', 'enum', 'properties', 'required', 'additionalProperties']);
+
+/** File annotations; a file field consumes them, any other field keeps them in `extra`. */
+const FILE_KEYWORDS = ['allowed_mime_types', 'max_file_bytes'] as const;
 
 const LIST_WIDGETS: ReadonlySet<FormWidget> = new Set(['multiselect', 'checkbox-group']);
 
@@ -141,7 +152,15 @@ const parseField = (
 	}
 	const extra = pick(schema, MODELLED_KEYWORDS);
 	if (schema.format === 'email' || schema.format === 'uri') constraints.format = schema.format;
-	else if (schema.format && !['date', 'date-time', 'time'].includes(schema.format)) extra.format = schema.format;
+	else if (schema.format && !['date', 'date-time', 'time', FORM_FILE_FORMAT].includes(schema.format)) {
+		extra.format = schema.format;
+	}
+	const file = widget === 'file' ? fileRules(schema, ctx.root) : undefined;
+	if (file) {
+		for (const name of FILE_KEYWORDS) delete extra[name];
+		if (file.accept.length) constraints.allowedMimeTypes = file.accept;
+		if (file.maxBytes !== undefined) constraints.maxFileBytes = file.maxBytes;
+	}
 
 	const isArray = schemaTypes(schema).includes('array');
 	const children =
@@ -160,6 +179,11 @@ const parseField = (
 		widget === 'remote-select' && fieldUi.options
 			? { ...fieldUi.options, multiple: isArray || undefined }
 			: fieldUi.options;
+	const itemExtra = items ? pick(items, ITEM_KEYWORDS) : {};
+	if (file) {
+		delete itemExtra.format;
+		for (const name of FILE_KEYWORDS) delete itemExtra[name];
+	}
 
 	return {
 		kind: 'input',
@@ -174,6 +198,7 @@ const parseField = (
 		colSpan: fieldUi.colSpan,
 		visibleWhen: fieldUi.visibleWhen,
 		groupStyle: widget === 'group' || widget === 'repeater' ? fieldUi.groupStyle : undefined,
+		multiple: file ? file.multiple : undefined,
 		options,
 		default: schema.default,
 		enumValues: (isArray ? items?.enum : schema.enum) ?? [],
@@ -181,7 +206,7 @@ const parseField = (
 		children,
 		strict: (widget === 'repeater' ? items?.additionalProperties : schema.additionalProperties) === false,
 		extra,
-		itemExtra: items ? pick(items, ITEM_KEYWORDS) : {},
+		itemExtra,
 	};
 };
 
@@ -192,7 +217,12 @@ export interface FormDraftParseResult {
 }
 
 /** A stored form as the builder's draft. Anything it can't model is kept as a raw field, unchanged. */
-export const draftFromForm = (name: string, schema: JsonSchema, rawUi?: unknown): FormDraftParseResult => {
+export const draftFromForm = (
+	name: string,
+	schema: JsonSchema,
+	rawUi?: unknown,
+	contentType?: FormContentType | '',
+): FormDraftParseResult => {
 	const { ui, warnings } = parseFormUi(rawUi);
 	const ctx: ParseContext = { root: schema, ui, warnings: [...warnings] };
 	const properties = schema.properties ?? {};
@@ -202,6 +232,7 @@ export const draftFromForm = (name: string, schema: JsonSchema, rawUi?: unknown)
 	return {
 		draft: {
 			name,
+			contentType: contentType || 'application/json',
 			fields: ordered.map((key) => parseField(key, properties[key], required.includes(key), key, ctx)),
 			columns: ui?.layout?.columns ?? 1,
 			sectionStyle: ui?.layout?.sectionStyle ?? 'long',
@@ -222,6 +253,13 @@ const definedConstraints = (constraints: FormDraftConstraints, names: readonly (
 const STRING_RULES = ['minLength', 'maxLength', 'pattern'] as const;
 const NUMBER_RULES = ['minimum', 'maximum', 'exclusiveMinimum', 'exclusiveMaximum', 'multipleOf'] as const;
 const ARRAY_RULES = ['minItems', 'maxItems', 'uniqueItems'] as const;
+const FILE_COUNT_RULES = ['minItems', 'maxItems'] as const;
+
+/** A file field's annotations, written on the property itself where the engine reads them. */
+const fileAnnotations = (rules: FormDraftConstraints): JsonSchema => ({
+	...(rules.allowedMimeTypes?.length ? { allowed_mime_types: rules.allowedMimeTypes } : {}),
+	...(rules.maxFileBytes !== undefined ? { max_file_bytes: rules.maxFileBytes } : {}),
+});
 
 const objectSchema = (fields: FormDraftField[], strict: boolean, extra: Record<string, unknown> = {}): JsonSchema => {
 	const required = fields.filter((field) => field.required).map((field) => field.key);
@@ -280,6 +318,15 @@ export const schemaOf = (field: FormDraftField): JsonSchema => {
 					items: objectSchema(field.children, field.strict, field.itemExtra),
 					...definedConstraints(rules, ARRAY_RULES),
 				};
+			case 'file':
+				return field.multiple
+					? {
+							type: 'array',
+							items: { type: 'string', format: FORM_FILE_FORMAT, ...field.itemExtra },
+							...fileAnnotations(rules),
+							...definedConstraints(rules, FILE_COUNT_RULES),
+						}
+					: { type: 'string', format: FORM_FILE_FORMAT, ...fileAnnotations(rules) };
 			case 'remote-select':
 				return field.options?.multiple
 					? {
@@ -386,12 +433,14 @@ export const newDraftField = (widget: FormWidget, key: string): FormDraftInputFi
 	extra: {},
 	itemExtra: {},
 	options: widget === 'remote-select' ? { url: '', method: 'GET', valuePath: 'id', labelPath: 'name' } : undefined,
+	multiple: widget === 'file' ? false : undefined,
 });
 
 export const isListWidget = (widget: FormWidget) => LIST_WIDGETS.has(widget);
 
 export const emptyDraft = (name = ''): FormDraft => ({
 	name,
+	contentType: 'application/json',
 	fields: [],
 	columns: 1,
 	sections: [],

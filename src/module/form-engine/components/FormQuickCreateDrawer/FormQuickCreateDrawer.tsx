@@ -22,7 +22,11 @@ const QuickCreateBody: React.FC<QuickCreateBodyProps> = ({ onCancel, onCreated }
 		setError(null);
 		if (builder.issues.length) return;
 		try {
-			const created = await createForm({ name: builder.draft.name.trim(), ...builder.output }).unwrap();
+			const created = await createForm({
+				name: builder.draft.name.trim(),
+				content_type: builder.draft.contentType,
+				...builder.output,
+			}).unwrap();
 			onCreated(created);
 		} catch (err) {
 			setError(formErrorMessage(err, 'Failed to create the form'));

@@ -11,6 +11,9 @@ import type { FormWidget } from '@module/form-engine/types/FormWidget';
 
 const FULL_WIDTH: ReadonlySet<FormFieldModel['widget']> = new Set(['group', 'repeater', 'textarea', 'json']);
 
+/** `format: binary` marks a file: on the property for one file, on its `items` for a list. */
+export const FORM_FILE_FORMAT = 'binary';
+
 const valueTypes = (schema: JsonSchema) => schemaTypes(schema).filter((type) => type !== 'null');
 
 /** The keywords in `schema` itself (not its children) the compiler can't express. */
@@ -34,6 +37,7 @@ export const defaultWidget = (schema: JsonSchema, root: JsonSchema): FormFieldMo
 	if (schema.enum) return isScalarEnum(schema) ? 'select' : 'json';
 	switch (type) {
 		case 'string':
+			if (schema.format === FORM_FILE_FORMAT) return 'file';
 			if (schema.format === 'date') return 'date';
 			if (schema.format === 'date-time') return 'datetime';
 			if (schema.format === 'time') return 'time';
@@ -47,6 +51,7 @@ export const defaultWidget = (schema: JsonSchema, root: JsonSchema): FormFieldMo
 			return Object.keys(schema.properties ?? {}).length ? 'group' : 'json';
 		case 'array': {
 			const items = resolveSchema(schema.items, root);
+			if (valueTypes(items)[0] === 'string' && items.format === FORM_FILE_FORMAT) return 'file';
 			if (isScalarEnum(items)) return 'multiselect';
 			if (valueTypes(items)[0] === 'object' && Object.keys(items.properties ?? {}).length) return 'repeater';
 			return 'json';
@@ -63,6 +68,7 @@ export const compatibleWidgets = (schema: JsonSchema, root: JsonSchema): FormWid
 	const [type] = valueTypes(schema);
 
 	const options: FormWidget[] = (() => {
+		if (fallback === 'file') return ['file'];
 		if (fallback === 'select') return ['select', 'radio'];
 		if (fallback === 'multiselect') return ['multiselect', 'checkbox-group', 'remote-select'];
 		switch (type) {
@@ -96,6 +102,21 @@ export const orderedKeys = (properties: Record<string, JsonSchema>, order: strin
 	...Object.keys(properties).filter((key) => !order.includes(key)),
 ];
 
+const stringList = (value: unknown) =>
+	Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+
+/** A file field's rules. The annotations sit on the property itself; on `items` is read too, as a fallback. */
+export const fileRules = (schema: JsonSchema, root: JsonSchema): FormFieldModel['file'] => {
+	const multiple = valueTypes(schema)[0] === 'array';
+	const items = multiple ? resolveSchema(schema.items, root) : {};
+	const maxBytes = schema.max_file_bytes ?? items.max_file_bytes;
+	return {
+		multiple,
+		accept: stringList(schema.allowed_mime_types ?? items.allowed_mime_types),
+		maxBytes: typeof maxBytes === 'number' && maxBytes > 0 ? maxBytes : undefined,
+	};
+};
+
 interface BuildContext {
 	root: JsonSchema;
 	ui: FormUi | null;
@@ -114,7 +135,11 @@ const buildField = (
 	const fallback = defaultWidget(schema, ctx.root);
 
 	let widget: FormFieldModel['widget'] = fallback;
-	if (fallback === 'json') {
+	if (fallback === 'file' && uiPath.includes('.')) {
+		// Multipart parts are flat and the engine checks file rules on top-level properties only.
+		ctx.warnings.push(`${uiPath}: file fields must be top level, so it's edited as JSON`);
+		widget = 'json';
+	} else if (fallback === 'json') {
 		const keywords = unsupportedKeywords(schema);
 		ctx.warnings.push(
 			keywords.length
@@ -159,6 +184,7 @@ const buildField = (
 		visibleWhen: fieldUi.visibleWhen,
 		options: fieldUi.options,
 		groupStyle: widget === 'group' || widget === 'repeater' ? fieldUi.groupStyle : undefined,
+		file: widget === 'file' ? fileRules(schema, ctx.root) : undefined,
 		children,
 		strict,
 	};
@@ -196,6 +222,9 @@ export const buildFormModel = (schema: JsonSchema, rawUi?: unknown): FormModel =
 		warnings: ctx.warnings,
 	};
 };
+
+/** Whether the form has a file field, so its payload has to go out as `multipart/form-data`. */
+export const hasFileFields = (model: FormModel) => model.fields.some((field) => field.widget === 'file');
 
 export const formWidgetLabel = (widget: FormFieldModel['widget']) =>
 	widget === 'json' ? 'JSON' : FORM_WIDGET_LABELS[widget];

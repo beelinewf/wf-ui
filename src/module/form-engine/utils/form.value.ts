@@ -61,6 +61,9 @@ export const initialFieldValue = (field: FormFieldModel): unknown => {
 		case 'select':
 		case 'radio':
 			return fallback ?? null;
+		case 'file':
+			// A file can't be a schema default; the filler always picks it.
+			return field.file?.multiple ? [] : null;
 		case 'json':
 			return fallback !== undefined ? structuredClone(fallback) : undefined;
 		default:
@@ -107,6 +110,13 @@ const fieldPayload = (field: FormFieldModel, value: unknown, path: string, root:
 			return typeof value === 'string' && value ? dayjs(value).format() : undefined;
 		case 'time':
 			return payloadTime(value);
+		case 'file':
+			// Kept as File objects; the multipart body is built from them on delivery.
+			if (field.file?.multiple) {
+				const files = Array.isArray(value) ? value.filter((item) => item instanceof File) : [];
+				return files.length ? files : undefined;
+			}
+			return value instanceof File ? value : undefined;
 		case 'json':
 			return value;
 		default:
