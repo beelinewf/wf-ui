@@ -1,0 +1,1 @@
+export { MyPasswordPage } from './MyPasswordPage';

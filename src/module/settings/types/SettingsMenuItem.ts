@@ -10,4 +10,6 @@ export interface SettingsMenuItem {
 	to: string;
 	/** Hidden unless the caller satisfies it; the route is guarded separately. */
 	permission?: PermissionRule;
+	/** Shown only to a local (email and password) account; the page redirects anyone else. */
+	localOnly?: boolean;
 }
