@@ -52,6 +52,17 @@ The first admin has to come from somewhere: create them with the API token (`POS
 
 If the UI and engine are on different origins, add `Retry-After` to `infra.http.cors.exposed_headers` so the login and register pages can show how long a rate limit lasts. Otherwise they fall back to a 30-second wait.
 
+## File inputs
+
+A form can have **File upload** fields. They have to be top level, not inside a group or repeater. A form with them is set to the **Multipart** content type. Its input node has to accept multipart on the `http` channel, and name a storage bucket.
+
+Engine settings (`config.yaml`):
+
+- `infra.storage` (endpoint, region, keys) pointing at S3-compatible storage. Without it, definitions still save, but a multipart delivery fails.
+- `engine.multipart` sets the upload limits (files per request, total, per file). A breach answers 413, which the input modal shows.
+
+A multipart delivery is flat: every part name is a top-level context key and every key arrives as a list. Text parts are `string[]`, and values other than strings are sent as JSON strings. File parts are `{ original_file_name, file_name, size, mime_type }[]`. The engine has no download endpoint, so run views list the stored `file_name` but can't fetch the file.
+
 ## License
 
 MIT. See [LICENSE](./LICENSE).
