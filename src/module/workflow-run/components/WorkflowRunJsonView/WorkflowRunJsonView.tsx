@@ -1,10 +1,11 @@
 import React from 'react';
 
-import { ActionIcon, CopyButton, ScrollArea, Text, Tooltip } from '@mantine/core';
+import { ActionIcon, CopyButton, ScrollArea, Stack, Text, Tooltip } from '@mantine/core';
 import { LuCheck, LuCopy } from 'react-icons/lu';
 
 import { formatJson } from '@module/workflow-run/utils';
 
+import { WorkflowRunFileRefs } from '../WorkflowRunFileRefs';
 import classes from './WorkflowRunJsonView.module.scss';
 
 interface WorkflowRunJsonViewProps {
@@ -32,25 +33,28 @@ export const WorkflowRunJsonView: React.FC<WorkflowRunJsonViewProps> = ({
 	}
 
 	return (
-		<div className={classes.root}>
-			<CopyButton value={text} timeout={1500}>
-				{({ copied, copy }) => (
-					<Tooltip label={copied ? 'Copied' : 'Copy JSON'}>
-						<ActionIcon
-							variant="default"
-							size="sm"
-							className={classes.copy}
-							onClick={copy}
-							aria-label="Copy JSON"
-						>
-							{copied ? <LuCheck size={12} /> : <LuCopy size={12} />}
-						</ActionIcon>
-					</Tooltip>
-				)}
-			</CopyButton>
-			<ScrollArea.Autosize mah={maxHeight} type="auto">
-				<pre className={classes.code}>{text}</pre>
-			</ScrollArea.Autosize>
-		</div>
+		<Stack gap={6}>
+			<WorkflowRunFileRefs value={value} />
+			<div className={classes.root}>
+				<CopyButton value={text} timeout={1500}>
+					{({ copied, copy }) => (
+						<Tooltip label={copied ? 'Copied' : 'Copy JSON'}>
+							<ActionIcon
+								variant="default"
+								size="sm"
+								className={classes.copy}
+								onClick={copy}
+								aria-label="Copy JSON"
+							>
+								{copied ? <LuCheck size={12} /> : <LuCopy size={12} />}
+							</ActionIcon>
+						</Tooltip>
+					)}
+				</CopyButton>
+				<ScrollArea.Autosize mah={maxHeight} type="auto">
+					<pre className={classes.code}>{text}</pre>
+				</ScrollArea.Autosize>
+			</div>
+		</Stack>
 	);
 };

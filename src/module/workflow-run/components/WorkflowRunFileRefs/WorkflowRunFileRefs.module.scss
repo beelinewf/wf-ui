@@ -1,0 +1,14 @@
+.root {
+	border: 1px solid var(--mantine-color-gray-2);
+	border-radius: var(--mantine-radius-sm);
+	padding: 6px 10px;
+}
+
+.row {
+	min-width: 0;
+}
+
+.icon {
+	flex-shrink: 0;
+	color: var(--mantine-color-dimmed);
+}
